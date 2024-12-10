@@ -67,6 +67,7 @@ const Profile = () => {
       headers: {
         Authorization: `Bearer ${access_token}`, // Include the access token
       },
+      credentials: "include", // Allow credentials
       body: formData, // Send the form data with profile data and picture
     })
       .then((res) => res.json())

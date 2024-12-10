@@ -8,6 +8,8 @@ import {
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import "./App.css";
 import Profile from "./pages/home/Profile";
+import Card from './pages/home/card'
+//import Chatbox from './pages/home/ChatBox'
 
 // Initialize Firebase (replace with your Firebase config)
 import { initializeApp } from "firebase/app";
@@ -242,17 +244,16 @@ const Login = () => {
     </div>
   );
 };
-const handleProfileButton = () => {
-  navigate("/profile");
-};
+
 const Home = () => {
   const navigate = useNavigate();  // Use navigate inside the component
 
   const handleProfileButton = () => {
     navigate("/profile");  // Navigate to /profile when the button is clicked
   };
-
+  
   return (
+    <>
     <div className="h-screen flex items-center justify-center bg-gray-100">
       <button
         type="button"
@@ -262,6 +263,10 @@ const Home = () => {
         Profile
       </button>
     </div>
+    <Card/>
+    
+    </>
+
   );
 };
 
