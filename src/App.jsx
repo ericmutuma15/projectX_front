@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,14 +6,14 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { initializeApp } from "firebase/app";
 import "./App.css";
+
+// Pages
 import Profile from "./pages/home/Profile";
 import Card from './pages/home/card'
-//import Chatbox from './pages/home/ChatBox'
 
-// Initialize Firebase (replace with your Firebase config)
-import { initializeApp } from "firebase/app";
-
+// Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCAlIUfXGNCdDGDfVS9Sjxexxq6GScRkdc",
   authDomain: "projx-8adc8.firebaseapp.com",
@@ -81,10 +81,11 @@ const SignUp = () => {
   const handleSignInRedirect = () => {
     navigate("/login");
   };
+
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md">
-        <h1 className="text-xl font-bold mb-4">Sign Up</h1>
+    <div className="h-screen flex items-center justify-center bg-gray-800">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-xl w-full sm:w-96">
+        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Sign Up</h1>
         <input
           type="text"
           name="name"
@@ -92,7 +93,7 @@ const SignUp = () => {
           value={formData.name}
           onChange={handleChange}
           required
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-3 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="email"
@@ -101,7 +102,7 @@ const SignUp = () => {
           value={formData.email}
           onChange={handleChange}
           required
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-3 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="password"
@@ -110,7 +111,7 @@ const SignUp = () => {
           value={formData.password}
           onChange={handleChange}
           required
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-3 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="password"
@@ -119,15 +120,15 @@ const SignUp = () => {
           value={formData.confirmPassword}
           onChange={handleChange}
           required
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-3 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+          className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition duration-300"
         >
           Sign Up
         </button>
-        <div className="mt-4 text-center">
+        <div className="mt-4 text-center text-gray-700">
           <p>
             Already a member?{" "}
             <button
@@ -206,9 +207,9 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow-md">
-        <h1 className="text-xl font-bold mb-4">Login</h1>
+    <div className="h-screen flex items-center justify-center bg-gray-800">
+      <form onSubmit={handleLogin} className="bg-white p-8 rounded-lg shadow-xl w-full sm:w-96">
+        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Login</h1>
         <input
           type="email"
           name="email"
@@ -216,7 +217,7 @@ const Login = () => {
           value={formData.email}
           onChange={handleChange}
           required
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-3 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="password"
@@ -225,18 +226,18 @@ const Login = () => {
           value={formData.password}
           onChange={handleChange}
           required
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-3 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+          className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition duration-300"
         >
           Login
         </button>
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 mt-3"
+          className="w-full bg-red-600 text-white py-3 rounded-md mt-4 hover:bg-red-700 transition duration-300"
         >
           Continue with Google
         </button>
@@ -247,28 +248,55 @@ const Login = () => {
 
 const Home = () => {
   const navigate = useNavigate();  // Use navigate inside the component
+  const [user, setUser] = useState(null);
+
+  // Fetch user data when the component loads
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        const response = await fetch("http://localhost:5000/api/users", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        console.log("User data:", data);
+        setUser(data);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleProfileButton = () => {
-    navigate("/profile");  // Navigate to /profile when the button is clicked
+    navigate("/profile");
   };
-  
+
   return (
     <>
-    <div className="h-screen flex items-center justify-center bg-gray-100">
-      <button
-        type="button"
-        onClick={handleProfileButton}
-        className="text-blue-500 hover:underline"
-      >
-        Profile
-      </button>
-    </div>
-    <Card/>
-    
-    </>
+      <div className="sticky top-0 bg-gray-800 w-full h-1/5 flex justify-between items-center p-4">
+        <div className="flex items-center space-x-4">
+          <img
+            src={user?.picture || "default-profile.png"} // Use default if no profile picture
+            alt="Profile"
+            className="w-12 h-12 rounded-full"
+          />
+          <span className="text-white text-lg">{user?.name || "User"}</span>
+        </div>
 
+        <div className="flex space-x-4">
+          <button className="text-white">🔔</button> {/* Notification Icon */}
+          <button className="text-white">⚙️</button> {/* Settings Icon */}
+          <button onClick={handleProfileButton} className="text-white">👤</button> {/* Profile Icon */}
+        </div>
+      </div>
+
+      <div className="h-screen flex items-center justify-center bg-gray-800">
+        <Card />
+      </div>
+    </>
   );
 };
-
 
 export default App;

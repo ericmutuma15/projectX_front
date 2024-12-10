@@ -86,41 +86,88 @@ const Profile = () => {
   }, []);
 
   return (
-    <div>
-      <h2>Update Profile</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        />
-        <button type="button" onClick={getLocation}>
-          Get Current Location
-        </button>
-        <p>{location}</p>
-        <label>Upload Picture:</label>
-        <input type="file" accept="image/*" onChange={handleFileChange} />
-        <button type="button" onClick={() => setUseCamera(true)}>
-          Use Camera
-        </button>
-        {useCamera && (
+    <div className="bg-gray-800 h-screen flex items-center justify-center">
+      <div className="w-full max-w-lg p-8 bg-gray-500 rounded-lg shadow-lg">
+        <div
+          className="relative h-40 bg-cover bg-center rounded-t-lg"
+          style={{
+            backgroundImage: `url(${picture || "default-profile.png"})`,
+          }}
+        >
+          <div className="absolute bottom-4 left-4 text-white text-2xl font-bold">{name || "User Name"}</div>
+        </div>
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <Webcam ref={webcamRef} screenshotFormat="image/jpeg" />
-            <button type="button" onClick={handleCameraCapture}>
-              Capture
-            </button>
+            <label className="block text-gray-700 font-semibold">Name</label>
+            <input
+              type="text"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full p-2 border rounded mt-1"
+            />
           </div>
-        )}
-        <button type="submit">Save Profile</button>
-      </form>
+
+          <div>
+            <label className="block text-gray-700 font-semibold">Description</label>
+            <textarea
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              className="w-full p-2 border rounded mt-1"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={getLocation}
+            className="text-blue-500 hover:underline"
+          >
+            Get Current Location
+          </button>
+          <p className="text-gray-500">{location || "Location not set"}</p>
+
+          <div>
+            <label className="block text-gray-700 font-semibold">Upload Picture</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full p-2 border rounded mt-1"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setUseCamera(true)}
+            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mt-2"
+          >
+            Use Camera
+          </button>
+
+          {useCamera && (
+            <div className="mt-4">
+              <Webcam ref={webcamRef} screenshotFormat="image/jpeg" />
+              <button
+                type="button"
+                onClick={handleCameraCapture}
+                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 mt-2"
+              >
+                Capture
+              </button>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 w-full mt-4"
+          >
+            Save Profile
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

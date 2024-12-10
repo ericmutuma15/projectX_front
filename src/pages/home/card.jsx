@@ -47,17 +47,19 @@ const Card = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-800">
       {users.map((user) => (
         <div
           key={user.id}
-          className="border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg flex flex-col"
+          className="w-full max-w-[500px] h-[500px] border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg flex flex-col transition-all transform hover:scale-105 hover:shadow-xl hover:bg-gray-500 duration-300 ease-in-out"
         >
-          <img
-            className="w-full h-64 object-cover"
-            src={`http://127.0.0.1:5000/static/${user.picture}`} // Adjusted to serve images correctly
-            alt="User Profile"
-          />
+          <div className="w-full h-64 relative">
+            <img
+              className="w-full h-full object-cover rounded-t-lg transition-all duration-300 ease-in-out hover:opacity-80"
+              src={`http://127.0.0.1:5000/static/${user.picture}`} // Adjusted to serve images correctly
+              alt="User Profile"
+            />
+          </div>
           <div className="p-4 flex-1">
             <div className="font-bold text-xl mb-2">{user.name}</div>
             <p className="text-gray-700 text-base">{user.description}</p>
@@ -66,13 +68,13 @@ const Card = () => {
           <div className="flex justify-around p-4">
             <button
               onClick={() => handleAction(user.id, "like")}
-              className="text-green-500 hover:text-green-700"
+              className="text-green-500 hover:text-green-700 transition-colors duration-300"
             >
               <FaCheck size={24} />
             </button>
             <button
               onClick={() => handleAction(user.id, "reject")}
-              className="text-red-500 hover:text-red-700"
+              className="text-red-500 hover:text-red-700 transition-colors duration-300"
             >
               <FaTimes size={24} />
             </button>
