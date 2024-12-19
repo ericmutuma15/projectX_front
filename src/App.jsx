@@ -82,6 +82,7 @@ const SignUp = () => {
     navigate("/login");
   };
 
+
   return (
     <div className="h-screen flex items-center justify-center bg-gray-800">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-xl w-full sm:w-96">
@@ -249,6 +250,8 @@ const Login = () => {
 const Home = () => {
   const navigate = useNavigate();  // Use navigate inside the component
   const [user, setUser] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Fetch user data when the component loads
   useEffect(() => {
@@ -273,6 +276,33 @@ const Home = () => {
     navigate("/profile");
   };
 
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      try {
+        const response = await fetch("http://localhost:5000/api/notifications", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        setNotifications(data);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const handleNotificationClick = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+
   return (
     <>
       <div className="sticky top-0 bg-gray-800 w-full h-1/5 flex justify-between items-center p-4">
@@ -285,8 +315,34 @@ const Home = () => {
           <span className="text-white text-lg">{user?.name || "User"}</span>
         </div>
 
-        <div className="flex space-x-4">
-          <button className="text-white">🔔</button> {/* Notification Icon */}
+        <div className="flex space-x-4 relative">
+          <button onClick={handleNotificationClick} className="text-white relative">
+            🔔
+            {notifications.length > 0 && (
+              <span className="absolute top-0 right-0 bg-red-600 text-white rounded-full text-xs px-2">
+                {notifications.length}
+              </span>
+            )}
+          </button>
+          {showNotifications && (
+            <div className="absolute top-12 right-0 bg-gray-700 text-white p-4 rounded-lg shadow-lg w-64">
+              <h4 className="font-bold mb-2">Notifications</h4>
+              {notifications.length === 0 ? (
+                <p>No new notifications</p>
+              ) : (
+                <ul>
+                  {notifications.map((notification) => (
+                    <li key={notification.id} className="mb-2">
+                      <p>{notification.requester_name} sent you a friend request</p>
+                      <span className="text-gray-400 text-sm">
+                        {new Date(notification.timestamp).toLocaleString()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <button className="text-white">⚙️</button> {/* Settings Icon */}
           <button onClick={handleProfileButton} className="text-white">👤</button> {/* Profile Icon */}
         </div>

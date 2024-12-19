@@ -8,35 +8,92 @@ const Card = () => {
   // Fetch users excluding the current logged-in user
   const fetchUsers = async () => {
     const token = localStorage.getItem("access_token");
+    if (!token) {
+      setError("Authorization token is missing. Please log in again.");
+      return;
+    }
+
     try {
       const response = await fetch("http://127.0.0.1:5000/api/users", {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         credentials: "include", // Allow credentials if needed
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch users: ${response.status}`);
+        const data = await response.json();
+        throw new Error(data.message || `Failed to fetch users: ${response.status}`);
       }
 
       const data = await response.json();
       setUsers(data);
     } catch (err) {
       console.error("Error fetching users:", err);
-      setError("Failed to load users. Please try again later.");
+      setError(err.message || "Failed to load users. Please try again later.");
+    }
+  };
+
+  // Generic API call function
+  const handleApiAction = async (url, payload) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("Authorization token is missing. Please log in again.");
+      return false;
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || `Request failed with status ${response.status}`);
+      }
+
+      return true; // Request was successful
+    } catch (err) {
+      console.error("API Action Error:", err);
+      alert(err.message || "An error occurred. Please try again.");
+      return false;
+    }
+  };
+
+  const handleAction = async (userId, action) => {
+    if (action === "like") {
+      const success = await handleApiAction(
+        "http://127.0.0.1:5000/api/send-friend-request",
+        { userId }
+      );
+
+      if (success) {
+        alert("Friend request sent!");
+      }
+    } else if (action === "reject") {
+      // Remove user locally
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+
+      const success = await handleApiAction(
+        "http://127.0.0.1:5000/api/reject-user",
+        { userId }
+      );
+
+      if (!success) {
+        // Optionally revert UI changes if the API call fails
+        fetchUsers();
+      }
     }
   };
 
   useEffect(() => {
     fetchUsers();
   }, []);
-
-  const handleAction = (userId, action) => {
-    // Handle action for like (tick) or reject (X)
-    console.log(`Action for user ${userId}: ${action}`);
-    // You can implement a backend call for the action here
-  };
 
   if (error) {
     return (
