@@ -1,69 +1,109 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-const ChatBox = ({ receiverId }) => {
+const ChatBox = ({ user, recipient }) => {
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [media, setMedia] = useState(null);
+  const [messageInput, setMessageInput] = useState("");
+  const [file, setFile] = useState(null);
 
-  useEffect(() => {
-    fetchMessages();
-  }, [receiverId]);
+  const handleSendMessage = async () => {
+    if (!messageInput && !file) return;
 
-  const fetchMessages = async () => {
-    const access_token = localStorage.getItem("access_token");
-    const response = await fetch(`http://localhost:5000/api/messages/${receiverId}`, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
-    const data = await response.json();
-    setMessages(data);
-  };
+    const newMessage = {
+      sender: user?.email,
+      recipient: recipient?.email,
+      text: messageInput,
+      file: file ? URL.createObjectURL(file) : null, // For image/audio preview
+      timestamp: new Date(),
+    };
 
-  const sendMessage = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("receiver_id", receiverId);
-    formData.append("message", newMessage);
-    if (media) formData.append("media", media);
+    // Append the new message locally
+    setMessages([...messages, newMessage]);
 
-    const access_token = localStorage.getItem("access_token");
-    const response = await fetch("http://localhost:5000/api/messages", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-      body: formData,
-    });
+    try {
+      // Send the message to the backend
+      const formData = new FormData();
+      formData.append("sender", user?.email);
+      formData.append("recipient", recipient?.email);
+      if (messageInput) formData.append("text", messageInput);
+      if (file) formData.append("file", file);
 
-    if (response.ok) {
-      setNewMessage("");
-      setMedia(null);
-      fetchMessages(); // Refresh messages
+      await fetch("http://localhost:5000/api/messages", {
+        method: "POST",
+        body: formData,
+      });
+
+      // Clear input
+      setMessageInput("");
+      setFile(null);
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
   };
 
   return (
-    <div>
-      <div className="chat-box">
-        {messages.map((msg) => (
-          <div key={msg.id}>
-            <p>{msg.message}</p>
-            {msg.media_type === "image" && <img src={msg.media_url} alt="media" />}
-            {msg.media_type === "audio" && <audio controls src={msg.media_url} />}
+    <div className="flex flex-col h-full w-full bg-gray-800 text-white">
+      {/* Chat Header */}
+      <div className="p-4 bg-gray-700 flex items-center">
+        <img
+          src={recipient?.picture || "default-profile.png"}
+          alt="Recipient"
+          className="w-10 h-10 rounded-full mr-4"
+        />
+        <span>{recipient?.name}</span>
+      </div>
+
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex ${
+              message.sender === user?.email ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div className="bg-gray-700 p-3 rounded-lg max-w-sm">
+              {message.text && <p>{message.text}</p>}
+              {message.file && (
+                <img
+                  src={message.file}
+                  alt="Uploaded content"
+                  className="mt-2 max-w-full"
+                />
+              )}
+              <span className="text-xs text-gray-400">
+                {new Date(message.timestamp).toLocaleTimeString()}
+              </span>
+            </div>
           </div>
         ))}
       </div>
-      <form onSubmit={sendMessage}>
+
+      {/* Input Field */}
+      <div className="p-4 bg-gray-700 flex items-center space-x-2">
         <input
           type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type a message"
+          placeholder="Type a message..."
+          value={messageInput}
+          onChange={(e) => setMessageInput(e.target.value)}
+          className="flex-1 p-2 bg-gray-800 border border-gray-600 rounded-lg"
         />
-        <input type="file" accept="image/*,audio/*" onChange={(e) => setMedia(e.target.files[0])} />
-        <button type="submit">Send</button>
-      </form>
+        <input
+          type="file"
+          accept="image/*,audio/*"
+          onChange={(e) => setFile(e.target.files[0])}
+          className="hidden"
+          id="file-upload"
+        />
+        <label htmlFor="file-upload" className="cursor-pointer">
+          📎
+        </label>
+        <button
+          onClick={handleSendMessage}
+          className="bg-blue-600 p-2 rounded-lg text-white"
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 };

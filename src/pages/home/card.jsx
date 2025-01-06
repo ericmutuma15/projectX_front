@@ -14,7 +14,7 @@ const Card = () => {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/users", {
+      const response = await fetch("http://127.0.0.1:5555/api/users", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -68,7 +68,7 @@ const Card = () => {
   const handleAction = async (userId, action) => {
     if (action === "like") {
       const success = await handleApiAction(
-        "http://127.0.0.1:5000/api/send-friend-request",
+        "http://127.0.0.1:5555/api/send-friend-request",
         { userId }
       );
 
@@ -80,7 +80,7 @@ const Card = () => {
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
 
       const success = await handleApiAction(
-        "http://127.0.0.1:5000/api/reject-user",
+        "http://127.0.0.1:5555/api/reject-user",
         { userId }
       );
 
@@ -108,38 +108,39 @@ const Card = () => {
       {users.map((user) => (
         <div
           key={user.id}
-          className="w-full max-w-[500px] h-[500px] border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg flex flex-col transition-all transform hover:scale-105 hover:shadow-xl hover:bg-gray-500 duration-300 ease-in-out"
+          className="w-full max-w-[250px] h-[250px] border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg flex flex-col transition-all transform hover:scale-105 hover:shadow-xl hover:bg-gray-500 duration-300 ease-in-out"
         >
-          <div className="w-full h-64 relative">
+          <div className="w-full h-32 relative">
             <img
               className="w-full h-full object-cover rounded-t-lg transition-all duration-300 ease-in-out hover:opacity-80"
-              src={`http://127.0.0.1:5000/static/${user.picture}`} // Adjusted to serve images correctly
+              src={`http://127.0.0.1:5555/static/${user.picture}`}
               alt="User Profile"
             />
           </div>
           <div className="p-4 flex-1">
-            <div className="font-bold text-xl mb-2">{user.name}</div>
-            <p className="text-gray-700 text-base">{user.description}</p>
-            <p className="text-gray-500 text-sm mt-2">{user.location}</p>
+            <div className="font-bold text-lg mb-2">{user.name}</div>
+            <p className="text-gray-700 text-sm">{user.description}</p>
+            <p className="text-gray-500 text-xs mt-2">{user.location}</p>
           </div>
           <div className="flex justify-around p-4">
             <button
               onClick={() => handleAction(user.id, "like")}
               className="text-green-500 hover:text-green-700 transition-colors duration-300"
             >
-              <FaCheck size={24} />
+              <FaCheck size={20} />
             </button>
             <button
               onClick={() => handleAction(user.id, "reject")}
               className="text-red-500 hover:text-red-700 transition-colors duration-300"
             >
-              <FaTimes size={24} />
+              <FaTimes size={20} />
             </button>
           </div>
         </div>
       ))}
     </div>
   );
+  
 };
 
 export default Card;

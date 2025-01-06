@@ -86,59 +86,61 @@ const Profile = () => {
   }, []);
 
   return (
-    <div className="bg-gray-800 h-screen flex items-center justify-center">
-      <div className="w-full max-w-lg p-8 bg-gray-500 rounded-lg shadow-lg">
+    <div className="bg-gray-800 min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-lg p-8 bg-gray-900 rounded-lg shadow-lg">
         <div
           className="relative h-40 bg-cover bg-center rounded-t-lg"
           style={{
-            backgroundImage: `url(${picture || "default-profile.png"})`,
+            backgroundImage: `url(${picture || "/default-profile.png"})`,
           }}
         >
           <div className="absolute bottom-4 left-4 text-white text-2xl font-bold">{name || "User Name"}</div>
         </div>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-6">
           <div>
-            <label className="block text-gray-700 font-semibold">Name</label>
+            <label className="block text-gray-300 font-semibold">Name</label>
             <input
               type="text"
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full p-2 border rounded mt-1"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
+  
           <div>
-            <label className="block text-gray-700 font-semibold">Description</label>
+            <label className="block text-gray-300 font-semibold">Description</label>
             <textarea
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="w-full p-2 border rounded mt-1"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          <button
-            type="button"
-            onClick={getLocation}
-            className="text-blue-500 hover:underline"
-          >
-            Get Current Location
-          </button>
-          <p className="text-gray-500">{location || "Location not set"}</p>
-
+  
           <div>
-            <label className="block text-gray-700 font-semibold">Upload Picture</label>
+            <button
+              type="button"
+              onClick={getLocation}
+              className="text-blue-400 hover:underline"
+            >
+              Get Current Location
+            </button>
+            <p className="text-gray-400 mt-1">{location || "Location not set"}</p>
+          </div>
+  
+          <div>
+            <label className="block text-gray-300 font-semibold">Upload Picture</label>
             <input
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full p-2 border rounded mt-1"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded mt-1 focus:outline-none"
             />
           </div>
-
+  
           <button
             type="button"
             onClick={() => setUseCamera(true)}
@@ -146,7 +148,7 @@ const Profile = () => {
           >
             Use Camera
           </button>
-
+  
           {useCamera && (
             <div className="mt-4">
               <Webcam ref={webcamRef} screenshotFormat="image/jpeg" />
@@ -159,7 +161,7 @@ const Profile = () => {
               </button>
             </div>
           )}
-
+  
           <button
             type="submit"
             className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 w-full mt-4"
@@ -170,6 +172,7 @@ const Profile = () => {
       </div>
     </div>
   );
+  
 };
 
 export default Profile;
