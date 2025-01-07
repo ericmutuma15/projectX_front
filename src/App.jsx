@@ -20,6 +20,7 @@ import Card from "./pages/home/card";
 import ChatBox from "./pages/home/ChatBox";
 import FeedsPage from "./pages/home/FeedsPage";
 import CreatePost from "./pages/home/CreatePost";
+import SideBar from "./pages/home/sidebar";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -368,9 +369,9 @@ const Home = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-gray-800">
+    <div className="h-screen w-full flex flex-col bg-gray-900">
       {/* Sticky Header */}
-      <div className="sticky top-0 bg-gray-800 w-full h-1/5 flex justify-between items-center p-4 z-10">
+      <div className="sticky top-0  bg-gray-900 w-full h-1/5 flex justify-between items-center p-4 z-10">
         <div className="flex items-center space-x-4">
           <img src={LOGO} alt="Profile" className="w-12 h-12 rounded-full" />
           <span className="text-white text-lg">{user?.name || "User"}</span>
@@ -416,18 +417,21 @@ const Home = () => {
             <FaUserFriends />
           </button>
           <button onClick={handleProfileButton} className="text-white">
-            <CgProfile/>
+            <CgProfile />
           </button>
         </div>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="h-[calc(100vh-5rem)] md:h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] overflow-y-auto bg-gray-800">
-        <div className="flex items-center justify-center">
-          <FeedsPage />
-          
-        </div>
+      {/* Content */}
+      <div className="flex h-screen bg-gray-900">
+      {/* Sidebar */}
+      <SideBar />
+
+      {/* Feeds */}
+      <div className="flex-1 overflow-y-auto bg-gray-900">
+        <FeedsPage />
       </div>
+    </div>
     </div>
   );
 };

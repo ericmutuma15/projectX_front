@@ -2,69 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
+/* Body styles for full-screen layout with a dark background */
 body {
-  font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
+  width: 100vw; /* Full width */
+  font-family: Arial, sans-serif;
+  background-color: #212121; /* Dark theme */
+  color: #ffffff; /* Light text for contrast */
+  display: flex; /* Flex layout for consistent alignment */
+  overflow: hidden; /* Prevent nested scrolling issues */
 }
 
-nav ul {
+/* Root container to ensure full-screen app layout */
+#root {
+  height: 100vh; /* Full height */
+  width: 100vw; /* Full width */
+  display: flex; /* Sidebar and content side-by-side */
+  flex-direction: row;
+  overflow: hidden; /* Prevent nested scrolling */
+}
+
+/* Sidebar styles */
+.sidebar {
+  flex-shrink: 0; /* Ensure fixed width */
+  width: 16rem; /* Matches Tailwind's `w-64` */
+  background-color: #212121; /* Match app's dark theme */
+  color: #ffffff; /* Light text for contrast */
+}
+
+/* Content area styles */
+.content {
+  flex-grow: 1; /* Allow content to take remaining space */
+  background-color: #212121; /* Slightly lighter than sidebar */
+  overflow-y: auto; /* Enable vertical scrolling for content */
+}
+
+/* Navigation links in the sidebar */
+.sidebar nav ul {
   list-style-type: none;
   padding: 0;
-  display: flex;
-  background-color: #0077cc;
   margin: 0;
 }
 
-nav li {
-  margin: 0;
+.sidebar nav li {
   padding: 10px 15px;
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
-}
-
-.login-container, .home-container {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  flex-grow: 1; /* Take up remaining space */
-  height: 100%;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: 0.375rem; /* Matches Tailwind's `rounded-md` */
+  transition: background-color 0.2s ease-in-out;
+}
+
+.sidebar nav li:hover {
+  background-color: #383838; /* Slight hover effect */
+}
+
+/* Create Post button */
+.sidebar button {
   width: 100%;
+  padding: 10px 15px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  background-color: #007bff; /* Blue button */
+  color: #ffffff; /* White text */
+  border: none;
+  border-radius: 0.375rem; /* Matches Tailwind's `rounded-md` */
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
-button {
-  transition: transform 0.2s ease-in-out;
+.sidebar button:hover {
+  background-color: #0056b3; /* Darker blue */
+  transform: scale(1.05); /* Slight zoom effect */
 }
 
-button:hover {
-  transform: scale(1.2);
-}
+/* Responsive adjustments for small screens */
+@media (max-width: 640px) {
+  #root {
+    flex-direction: column; /* Stack sidebar and content vertically */
+  }
 
-button:active {
-  transform: scale(1);
-}
-
-.profile-card {
-  transition: transform 0.3s ease-in-out;
-}
-
-.profile-card:hover {
-  transform: scale(1.05);
+  .sidebar {
+    width: 100%; /* Full width on small screens */
+    height: auto; /* Adjust height */
+  }
 }
