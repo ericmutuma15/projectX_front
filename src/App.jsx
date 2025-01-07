@@ -364,20 +364,28 @@ const Home = () => {
   const handleCreateButton = () => {
     navigate("/create-post");
   };
+
   const handleFriendsButton = () => {
     navigate("/add-users");
+  };
+
+  // Log out logic
+  const handleLogout = () => {
+    localStorage.removeItem("access_token"); // Remove the access token from local storage
+    navigate("/login"); // Redirect to the login page after logging out
   };
 
   return (
     <div className="h-screen w-full flex flex-col bg-gray-900">
       {/* Sticky Header */}
-      <div className="sticky top-0  bg-gray-900 w-full h-1/5 flex justify-between items-center p-4 z-10">
+      <div className="sticky top-0 bg-gray-900 w-full h-1/5 flex justify-between items-center p-4 z-10">
         <div className="flex items-center space-x-4">
           <img src={LOGO} alt="Profile" className="w-12 h-12 rounded-full" />
           <span className="text-white text-lg">{user?.name || "User"}</span>
         </div>
 
-        <div className="flex space-x-4 relative">
+        {/* Centered Icon Container */}
+        <div className="flex space-x-4 absolute left-1/2 transform -translate-x-1/2">
           <button
             onClick={handleNotificationClick}
             className="text-white relative"
@@ -389,27 +397,6 @@ const Home = () => {
               </span>
             )}
           </button>
-          {showNotifications && (
-            <div className="absolute top-12 right-0 bg-gray-700 text-white p-4 rounded-lg shadow-lg w-64">
-              <h4 className="font-bold mb-2">Notifications</h4>
-              {notifications.length === 0 ? (
-                <p>No new notifications</p>
-              ) : (
-                <ul>
-                  {notifications.map((notification) => (
-                    <li key={notification.id} className="mb-2">
-                      <p>
-                        {notification.requester_name} sent you a friend request
-                      </p>
-                      <span className="text-gray-400 text-sm">
-                        {new Date(notification.timestamp).toLocaleString()}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
           <button onClick={handleCreateButton} className="text-white">
             <FaUpload />
           </button>
@@ -420,18 +407,26 @@ const Home = () => {
             <CgProfile />
           </button>
         </div>
+
+        {/* Log Out Button */}
+        <button
+          onClick={handleLogout}
+          className="text-white absolute right-4 top-1/2 transform -translate-y-1/2"
+        >
+          Log Out
+        </button>
       </div>
 
       {/* Content */}
       <div className="flex h-screen bg-gray-900">
-      {/* Sidebar */}
-      <SideBar />
+        {/* Sidebar */}
+        <SideBar />
 
-      {/* Feeds */}
-      <div className="flex-1 overflow-y-auto bg-gray-900">
-        <FeedsPage />
+        {/* Feeds */}
+        <div className="flex-1 overflow-y-auto bg-gray-900">
+          <FeedsPage />
+        </div>
       </div>
-    </div>
     </div>
   );
 };
