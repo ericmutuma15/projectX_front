@@ -45,7 +45,11 @@ const FeedsPage = () => {
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId
-            ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 }
+            ? {
+                ...post,
+                isLiked: !post.isLiked,
+                likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+              }
             : post
         )
       );
@@ -66,7 +70,11 @@ const FeedsPage = () => {
         setPosts((prevPosts) =>
           prevPosts.map((post) =>
             post.id === postId
-              ? { ...post, likes: response.data.likes, isLiked: response.data.liked }
+              ? {
+                  ...post,
+                  likes: response.data.likes,
+                  isLiked: response.data.liked,
+                }
               : post
           )
         );
@@ -76,7 +84,13 @@ const FeedsPage = () => {
       // Reset like state if error occurs to avoid UI inconsistency
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post.id === postId ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes + 1 : post.likes - 1 } : post
+          post.id === postId
+            ? {
+                ...post,
+                isLiked: !post.isLiked,
+                likes: post.isLiked ? post.likes + 1 : post.likes - 1,
+              }
+            : post
         )
       );
     }
@@ -85,7 +99,9 @@ const FeedsPage = () => {
   const handleCommentToggle = (postId) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
-        post.id === postId ? { ...post, showComments: !post.showComments } : post
+        post.id === postId
+          ? { ...post, showComments: !post.showComments }
+          : post
       )
     );
   };
@@ -121,7 +137,11 @@ const FeedsPage = () => {
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId
-            ? { ...post, comments: [...post.comments, response.data.comment], commentText: "" }
+            ? {
+                ...post,
+                comments: [...post.comments, response.data.comment],
+                commentText: "",
+              }
             : post
         )
       );
@@ -134,13 +154,30 @@ const FeedsPage = () => {
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="space-y-6 ">
         {posts.map((post) => (
-          <div key={post.id} className="bg-gray-900 p-6 rounded-lg shadow-lg max-w-3xl mx-auto">
+          <div
+            key={post.id}
+            className="bg-gray-900 p-6 rounded-lg shadow-lg max-w-3xl mx-auto"
+          >
+            {/* Post Content */}
+
+            <p className="text-sm text-gray-500">
+              Posted by: {post.user_name} on{" "}
+              {new Date(post.timestamp).toLocaleString()}
+            </p>
             {/* Media Section */}
             {post.media_url && (
               <div className="mb-4">
-                {post.media_url.endsWith(".mp4") || post.media_url.endsWith(".webm") ? (
-                  <video controls className="w-full rounded-lg" style={{ maxHeight: "400px" }}>
-                    <source src={`http://127.0.0.1:5555${post.media_url}`} type="video/mp4" />
+                {post.media_url.endsWith(".mp4") ||
+                post.media_url.endsWith(".webm") ? (
+                  <video
+                    controls
+                    className="w-full rounded-lg"
+                    style={{ maxHeight: "400px" }}
+                  >
+                    <source
+                      src={`http://127.0.0.1:5555${post.media_url}`}
+                      type="video/mp4"
+                    />
                     Your browser does not support the video tag.
                   </video>
                 ) : (
@@ -153,17 +190,19 @@ const FeedsPage = () => {
                 )}
               </div>
             )}
-
-            {/* Post Content */}
             <p className="text-gray-300 mb-4">{post.content}</p>
-            <p className="text-sm text-gray-500">
-              Posted by: {post.user_name} on {new Date(post.timestamp).toLocaleString()}
-            </p>
 
             {/* Actions Section */}
             <div className="flex justify-between items-center mt-4">
-              <button onClick={() => handleLike(post.id)} className="flex items-center space-x-2">
-                <FaHeart className={`w-5 h-5 ${post.isLiked ? "text-red-500" : "text-gray-400"}`} />
+              <button
+                onClick={() => handleLike(post.id)}
+                className="flex items-center space-x-2"
+              >
+                <FaHeart
+                  className={`w-5 h-5 ${
+                    post.isLiked ? "text-red-500" : "text-gray-400"
+                  }`}
+                />
                 <span>{post.likes}</span>
               </button>
 
@@ -171,8 +210,19 @@ const FeedsPage = () => {
                 onClick={() => handleCommentToggle(post.id)}
                 className="flex items-center space-x-2 text-gray-400 hover:text-blue-500"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m-6-6h6a2 2 0 012 2v4a2 2 0 01-2 2H9a2 2 0 01-2-2v-4a2 2 0 012-2z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m-6-6h6a2 2 0 012 2v4a2 2 0 01-2 2H9a2 2 0 01-2-2v-4a2 2 0 012-2z"
+                  />
                 </svg>
                 <span>Comment</span>
               </button>
@@ -183,7 +233,10 @@ const FeedsPage = () => {
               <div className="mt-4">
                 <div className="space-y-4">
                   {post.comments.map((comment) => (
-                    <div key={comment.id} className="bg-gray-700 p-4 rounded-lg">
+                    <div
+                      key={comment.id}
+                      className="bg-gray-700 p-4 rounded-lg"
+                    >
                       <p className="text-gray-300">{comment.content}</p>
                     </div>
                   ))}
