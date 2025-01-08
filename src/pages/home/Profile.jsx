@@ -9,14 +9,22 @@ const Profile = () => {
   const [useCamera, setUseCamera] = useState(false);
   const webcamRef = useRef(null);
 
-  // Function to get current location
+  // Function to get current location and convert to name
   const getLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation(
-            `${position.coords.latitude}, ${position.coords.longitude}`
-          );
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            const data = await response.json();
+            setLocation(data.address.city || data.display_name);
+          } catch (error) {
+            console.error("Error fetching location name:", error);
+            setLocation("Location not found");
+          }
         },
         (error) => alert("Failed to retrieve location!")
       );
@@ -71,7 +79,7 @@ const Profile = () => {
       body: formData, // Send the form data with profile data and picture
     })
       .then((res) => res.json())
-      .then((data) => {
+      .then(() => {
         alert("Profile updated successfully!");
       })
       .catch((err) => {
@@ -86,15 +94,17 @@ const Profile = () => {
   }, []);
 
   return (
-    <div className="bg-gray-800 min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-lg p-8 bg-gray-900 rounded-lg shadow-lg">
+    <div className="bg-gray-900 min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-lg p-8 bg-gray-800 rounded-lg shadow-lg">
         <div
           className="relative h-40 bg-cover bg-center rounded-t-lg"
           style={{
             backgroundImage: `url(${picture || "/default-profile.png"})`,
           }}
         >
-          <div className="absolute bottom-4 left-4 text-white text-2xl font-bold">{name || "User Name"}</div>
+          <div className="absolute bottom-4 left-4 text-white text-2xl font-bold">
+            {name || "User Name"}
+          </div>
         </div>
         <form onSubmit={handleSubmit} className="mt-4 space-y-6">
           <div>
@@ -105,10 +115,10 @@ const Profile = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-  
+
           <div>
             <label className="block text-gray-300 font-semibold">Description</label>
             <textarea
@@ -116,10 +126,10 @@ const Profile = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-  
+
           <div>
             <button
               type="button"
@@ -128,19 +138,21 @@ const Profile = () => {
             >
               Get Current Location
             </button>
-            <p className="text-gray-400 mt-1">{location || "Location not set"}</p>
+            <p className="text-gray-400 mt-1">
+              {location || "Location not set"}
+            </p>
           </div>
-  
+
           <div>
             <label className="block text-gray-300 font-semibold">Upload Picture</label>
             <input
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded mt-1 focus:outline-none"
+              className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded mt-1 focus:outline-none"
             />
           </div>
-  
+
           <button
             type="button"
             onClick={() => setUseCamera(true)}
@@ -148,7 +160,7 @@ const Profile = () => {
           >
             Use Camera
           </button>
-  
+
           {useCamera && (
             <div className="mt-4">
               <Webcam ref={webcamRef} screenshotFormat="image/jpeg" />
@@ -161,7 +173,7 @@ const Profile = () => {
               </button>
             </div>
           )}
-  
+
           <button
             type="submit"
             className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 w-full mt-4"
@@ -172,7 +184,6 @@ const Profile = () => {
       </div>
     </div>
   );
-  
 };
 
 export default Profile;

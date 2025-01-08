@@ -8,6 +8,8 @@ import {
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import "./App.css";
+
+//Assets and Icons
 import LOGO from "./assets/Olivia.gif";
 import { IoNotifications } from "react-icons/io5";
 import { FaUpload } from "react-icons/fa";
@@ -21,6 +23,7 @@ import ChatBox from "./pages/home/ChatBox";
 import FeedsPage from "./pages/home/FeedsPage";
 import CreatePost from "./pages/home/CreatePost";
 import SideBar from "./pages/home/sidebar";
+import RightSidebar from "./pages/home/RightSidebar";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -52,23 +55,25 @@ const App = () => {
 
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<SignUp />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/home" element={<Home currentUser={currentUser} />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/create-post" element={<CreatePost />} />
-        <Route path="/add-users" element={<Card />} />
-        <Route
-          path="/chat/:recipientEmail"
-          element={
-            <ChatBox
-              user={currentUser}
-              recipient={location.state?.recipient} // Use the recipient passed in state
-            />
-          }
-        />
-      </Routes>
+      <div className="bg-gray-900 h-screen w-full flex flex-col">
+        <Routes>
+          <Route path="/" element={<SignUp />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/home" element={<Home currentUser={currentUser} />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/create-post" element={<CreatePost />} />
+          <Route path="/add-users" element={<Card />} />
+          <Route
+            path="/chat/:recipientEmail"
+            element={
+              <ChatBox
+                user={currentUser}
+                recipient={location.state?.recipient} // Use the recipient passed in state
+              />
+            }
+          />
+        </Routes>
+      </div>
     </Router>
   );
 };
@@ -378,18 +383,15 @@ const Home = () => {
   return (
     <div className="h-screen w-full flex flex-col bg-gray-900">
       {/* Sticky Header */}
-      <div className="sticky top-0 bg-gray-900 w-full h-1/5 flex justify-between items-center p-4 z-10">
+      <div className="sticky top-0 bg-gray-900 w-full h-16 flex justify-between items-center p-4 z-10">
         <div className="flex items-center space-x-4">
           <img src={LOGO} alt="Profile" className="w-12 h-12 rounded-full" />
           <span className="text-white text-lg">{user?.name || "User"}</span>
         </div>
-
+  
         {/* Centered Icon Container */}
         <div className="flex space-x-4 absolute left-1/2 transform -translate-x-1/2">
-          <button
-            onClick={handleNotificationClick}
-            className="text-white relative"
-          >
+          <button onClick={handleNotificationClick} className="text-white relative">
             <IoNotifications />
             {notifications.length > 0 && (
               <span className="absolute top-0 right-0 bg-red-600 text-white rounded-full text-xs px-2">
@@ -407,7 +409,7 @@ const Home = () => {
             <CgProfile />
           </button>
         </div>
-
+  
         {/* Log Out Button */}
         <button
           onClick={handleLogout}
@@ -416,18 +418,27 @@ const Home = () => {
           Log Out
         </button>
       </div>
+  
+      {/* Main Content */}
+<div className="flex h-[calc(100vh-4rem)] bg-gray-900">
+  {/* Left Sidebar - Always Visible on Large Screens */}
+  <div className="hidden lg:block w-64 bg-gray-900 sticky top-16"> 
+    <SideBar />
+  </div>
 
-      {/* Content */}
-      <div className="flex h-screen bg-gray-900">
-        {/* Sidebar */}
-        <SideBar />
+  {/* Main Feeds Section */}
+  <div className="flex-1 bg-gray-900 overflow-auto scrollable">
+    <FeedsPage />
+  </div>
 
-        {/* Feeds */}
-        <div className="flex-1 overflow-y-auto bg-gray-900">
-          <FeedsPage />
-        </div>
-      </div>
+  {/* Right Sidebar */}
+  <div className="lg:w-64 lg:block">
+    <RightSidebar  />
+  </div>
+</div>
+
     </div>
   );
+  
 };
 export default App;

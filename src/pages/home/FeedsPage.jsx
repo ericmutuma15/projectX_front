@@ -132,7 +132,7 @@ const FeedsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
-      <div className="space-y-6">
+      <div className="space-y-6 ">
         {posts.map((post) => (
           <div key={post.id} className="bg-gray-900 p-6 rounded-lg shadow-lg max-w-3xl mx-auto">
             {/* Media Section */}

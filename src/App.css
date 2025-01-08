@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 /* Body styles for full-screen layout with a dark background */
 body {
@@ -79,6 +79,20 @@ body {
   background-color: #0056b3; /* Darker blue */
   transform: scale(1.05); /* Slight zoom effect */
 }
+/* Hide scrollbar but still allow scrolling */
+.scrollable {
+  overflow-y: scroll;
+}
+
+.scrollable::-webkit-scrollbar {
+  display: none; /* Hide the scrollbar for Webkit browsers (Chrome, Safari, etc.) */
+}
+
+.scrollable {
+  -ms-overflow-style: none;  /* Hide scrollbar for Internet Explorer and Edge */
+  scrollbar-width: none;      /* Hide scrollbar for Firefox */
+}
+
 
 /* Responsive adjustments for small screens */
 @media (max-width: 640px) {
