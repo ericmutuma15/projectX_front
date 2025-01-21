@@ -9,17 +9,10 @@ import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import "./App.css";
 
-//Assets and Icons
-import { IoNotifications } from "react-icons/io5";
-import { FaUpload } from "react-icons/fa";
-import { CgProfile } from "react-icons/cg";
-import { FaUserFriends } from "react-icons/fa";
-
 // Pages
 import LoadingPage from "./pages/home/LoadingPage";
 import Profile from "./pages/home/Profile";
 import Card from "./pages/home/card";
-import ChatBox from "./pages/home/ChatBox";
 import FeedsPage from "./pages/home/FeedsPage";
 import CreatePost from "./pages/home/CreatePost";
 import SideBar from "./pages/home/sidebar";
@@ -73,15 +66,6 @@ const App = () => {
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/add-users" element={<Card />} />
           <Route path="/edit-profile" element={<EditProfile />} />
-          <Route
-            path="/chat/:recipientEmail"
-            element={
-              <ChatBox
-                user={currentUser}
-                recipient={location.state?.recipient} // Use the recipient passed in state
-              />
-            }
-          />
         </Routes>
       </div>
     </Router>
@@ -370,8 +354,7 @@ const Login = () => {
 const Home = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState(null); // State for selected media
 
   // Fetch user data when the component loads
   useEffect(() => {
@@ -379,14 +362,11 @@ const Home = () => {
       const token = localStorage.getItem("access_token");
       if (token) {
         try {
-          const response = await fetch(
-            "http://localhost:5555/api/current_user",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          const response = await fetch("http://localhost:5555/api/current_user", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
           if (response.ok) {
             const data = await response.json();
@@ -403,51 +383,20 @@ const Home = () => {
     fetchCurrentUser();
   }, []);
 
-  // Fetch notifications
-  const fetchNotifications = async () => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      try {
-        const response = await fetch(
-          "http://localhost:5555/api/notifications",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const data = await response.json();
-        setNotifications(data);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  const handleNotificationClick = () => {
-    setShowNotifications(!showNotifications);
-  };
-
-  const handleProfileButton = () => {
-    navigate("/profile");
-  };
-
-  const handleCreateButton = () => {
-    navigate("/create-post");
-  };
-
-  const handleFriendsButton = () => {
-    navigate("/add-users");
-  };
-
   // Log out logic
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     navigate("/login");
+  };
+
+  // Function to handle media click and show preview
+  const handleMediaClick = (mediaUrl, caption) => {
+    setSelectedMedia({ mediaUrl, caption });
+  };
+
+  // Function to close the media preview
+  const handleClosePreview = () => {
+    setSelectedMedia(null);
   };
 
   return (
@@ -493,7 +442,7 @@ const Home = () => {
             className="flex-1 bg-gray-900 overflow-y-auto no-scrollbar"
             style={{ height: "calc(100vh - 4rem)" }}
           >
-            <FeedsPage />
+            <FeedsPage onMediaClick={handleMediaClick} />
           </div>
 
           {/* Right Sidebar */}
@@ -502,8 +451,45 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* Media Preview Overlay */}
+      {selectedMedia && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-20">
+          <div className="relative max-w-3xl w-full bg-gray-800 p-6 rounded-lg">
+            <button
+              onClick={handleClosePreview}
+              className="absolute top-4 right-4 text-white text-2xl"
+            >
+              &times;
+            </button>
+
+            {/* Media Preview */}
+            {selectedMedia.mediaUrl.endsWith(".mp4") || selectedMedia.mediaUrl.endsWith(".webm") ? (
+              <video
+                controls
+                className="w-full rounded-lg"
+                style={{ maxHeight: "70vh" }}
+              >
+                <source src={`http://127.0.0.1:5555${selectedMedia.mediaUrl}`} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <img
+                src={`http://127.0.0.1:5555${selectedMedia.mediaUrl}`}
+                alt="Preview"
+                className="w-full rounded-lg"
+                style={{ maxHeight: "70vh", objectFit: "cover" }}
+              />
+            )}
+
+            {/* Caption */}
+            <p className="text-white mt-4">{selectedMedia.caption}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 
 export default App;

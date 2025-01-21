@@ -6,6 +6,7 @@ const FeedsPage = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [previewMedia, setPreviewMedia] = useState(null); // New state for preview media
   const token = localStorage.getItem("access_token");
 
   // Fetch posts from the API
@@ -150,8 +151,47 @@ const FeedsPage = () => {
     }
   };
 
+  // Handle opening the media preview
+  const handleMediaClick = (mediaUrl) => {
+    setPreviewMedia(mediaUrl); // Set media URL for preview
+  };
+
+  // Handle closing the preview
+  const closePreview = () => {
+    setPreviewMedia(null); // Clear preview state to close modal
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
+      {/* Media Preview Modal */}
+      {previewMedia && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
+          <div className="relative max-w-3xl max-h-[80%]">
+            {previewMedia.endsWith(".mp4") || previewMedia.endsWith(".webm") ? (
+              <video
+                controls
+                className="w-full h-full rounded-lg"
+              >
+                <source src={`http://127.0.0.1:5555${previewMedia}`} />
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <img
+                src={`http://127.0.0.1:5555${previewMedia}`}
+                alt="Preview"
+                className="w-full h-full object-contain rounded-lg"
+              />
+            )}
+            <button
+              onClick={closePreview}
+              className="absolute top-2 right-2 text-white text-3xl"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-6">
         {posts.map((post) => (
           <div
@@ -174,10 +214,13 @@ const FeedsPage = () => {
                 </p>
               </div>
             </div>
-  
+
             {/* Media Section */}
             {post.media_url && (
-              <div className="mb-4">
+              <div
+                className="mb-4 cursor-pointer"
+                onClick={() => handleMediaClick(post.media_url)} // Trigger media preview on click
+              >
                 {post.media_url.endsWith(".mp4") ||
                 post.media_url.endsWith(".webm") ? (
                   <video
@@ -202,7 +245,7 @@ const FeedsPage = () => {
               </div>
             )}
             <p className="text-gray-300 mb-4">{post.content}</p>
-  
+
             {/* Actions Section */}
             <div className="flex justify-between items-center mt-4">
               <button
@@ -216,7 +259,7 @@ const FeedsPage = () => {
                 />
                 <span>{post.likes}</span>
               </button>
-  
+
               <button
                 onClick={() => handleCommentToggle(post.id)}
                 className="flex items-center space-x-2 text-gray-400 hover:text-blue-500"
@@ -238,57 +281,60 @@ const FeedsPage = () => {
                 <span>Comment</span>
               </button>
             </div>
-  
+
             {/* Comments Section */}
             {post.showComments && (
-  <div className="mt-4">
-    <div className="space-y-4">
-      {post.comments.map((comment) => (
-        <div key={comment.id} className="bg-gray-700 p-4 rounded-lg flex items-start space-x-4">
-          {/* Comment User's Profile Picture */}
-          {comment.user_photo && (
-            <img
-              src={`http://127.0.0.1:5555/static/${comment.user_photo}`}
-              alt="Comment user profile"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-          )}
+              <div className="mt-4">
+                <div className="space-y-4">
+                  {post.comments.map((comment) => (
+                    <div
+                      key={comment.id}
+                      className="bg-gray-700 p-4 rounded-lg flex items-start space-x-4"
+                    >
+                      {/* Comment User's Profile Picture */}
+                      {comment.user_photo && (
+                        <img
+                          src={`http://127.0.0.1:5555/static/${comment.user_photo}`}
+                          alt="Comment user profile"
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      )}
 
-          {/* Comment Content */}
-          <div className="flex-1">
-            <p className="text-sm font-bold text-white">{comment.user_name}</p>
-            <p className="text-gray-300">{comment.content}</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {new Date(comment.timestamp).toLocaleString()}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
+                      {/* Comment Content */}
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-white">
+                          {comment.user_name}
+                        </p>
+                        <p className="text-gray-300">{comment.content}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(comment.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-    {/* New Comment Form */}
-    <textarea
-      value={post.commentText}
-      onChange={(e) => handleCommentChange(post.id, e.target.value)}
-      placeholder="Add a comment..."
-      className="mt-4 w-full p-2 rounded-lg bg-gray-700 text-white"
-      rows="3"
-    />
-    <button
-      onClick={() => handleCommentSubmit(post.id)}
-      className="mt-2 px-4 py-2 bg-blue-600 rounded-lg text-white"
-    >
-      Post Comment
-    </button>
-  </div>
-)}
-
+                {/* New Comment Form */}
+                <textarea
+                  value={post.commentText}
+                  onChange={(e) => handleCommentChange(post.id, e.target.value)}
+                  placeholder="Add a comment..."
+                  className="mt-4 w-full p-2 rounded-lg bg-gray-700 text-white"
+                  rows="3"
+                />
+                <button
+                  onClick={() => handleCommentSubmit(post.id)}
+                  className="mt-2 px-4 py-2 bg-blue-600 rounded-lg text-white"
+                >
+                  Post Comment
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
     </div>
   );
-  
 };
 
 export default FeedsPage;
