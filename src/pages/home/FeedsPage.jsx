@@ -152,18 +152,29 @@ const FeedsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
-      <div className="space-y-6 ">
+      <div className="space-y-6">
         {posts.map((post) => (
           <div
             key={post.id}
             className="bg-gray-900 p-6 rounded-lg shadow-lg max-w-3xl mx-auto"
           >
             {/* Post Content */}
-
-            <p className="text-sm text-gray-500">
-              Posted by: {post.user_name} on{" "}
-              {new Date(post.timestamp).toLocaleString()}
-            </p>
+            <div className="flex items-center space-x-4 mb-4">
+              {post.user_photo && (
+                <img
+                  src={`http://127.0.0.1:5555/static/${post.user_photo}`}
+                  alt="User profile"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              )}
+              <div>
+                <p className="text-lg font-bold text-white">{post.user_name}</p>
+                <p className="text-sm text-gray-400">
+                  {new Date(post.timestamp).toLocaleString()}
+                </p>
+              </div>
+            </div>
+  
             {/* Media Section */}
             {post.media_url && (
               <div className="mb-4">
@@ -191,7 +202,7 @@ const FeedsPage = () => {
               </div>
             )}
             <p className="text-gray-300 mb-4">{post.content}</p>
-
+  
             {/* Actions Section */}
             <div className="flex justify-between items-center mt-4">
               <button
@@ -205,7 +216,7 @@ const FeedsPage = () => {
                 />
                 <span>{post.likes}</span>
               </button>
-
+  
               <button
                 onClick={() => handleCommentToggle(post.id)}
                 className="flex items-center space-x-2 text-gray-400 hover:text-blue-500"
@@ -227,42 +238,57 @@ const FeedsPage = () => {
                 <span>Comment</span>
               </button>
             </div>
-
+  
             {/* Comments Section */}
             {post.showComments && (
-              <div className="mt-4">
-                <div className="space-y-4">
-                  {post.comments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className="bg-gray-700 p-4 rounded-lg"
-                    >
-                      <p className="text-gray-300">{comment.content}</p>
-                    </div>
-                  ))}
-                </div>
+  <div className="mt-4">
+    <div className="space-y-4">
+      {post.comments.map((comment) => (
+        <div key={comment.id} className="bg-gray-700 p-4 rounded-lg flex items-start space-x-4">
+          {/* Comment User's Profile Picture */}
+          {comment.user_photo && (
+            <img
+              src={`http://127.0.0.1:5555/static/${comment.user_photo}`}
+              alt="Comment user profile"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          )}
 
-                {/* New Comment Form */}
-                <textarea
-                  value={post.commentText}
-                  onChange={(e) => handleCommentChange(post.id, e.target.value)}
-                  placeholder="Add a comment..."
-                  className="mt-4 w-full p-2 rounded-lg bg-gray-700 text-white"
-                  rows="3"
-                />
-                <button
-                  onClick={() => handleCommentSubmit(post.id)}
-                  className="mt-2 px-4 py-2 bg-blue-600 rounded-lg text-white"
-                >
-                  Post Comment
-                </button>
-              </div>
-            )}
+          {/* Comment Content */}
+          <div className="flex-1">
+            <p className="text-sm font-bold text-white">{comment.user_name}</p>
+            <p className="text-gray-300">{comment.content}</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {new Date(comment.timestamp).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* New Comment Form */}
+    <textarea
+      value={post.commentText}
+      onChange={(e) => handleCommentChange(post.id, e.target.value)}
+      placeholder="Add a comment..."
+      className="mt-4 w-full p-2 rounded-lg bg-gray-700 text-white"
+      rows="3"
+    />
+    <button
+      onClick={() => handleCommentSubmit(post.id)}
+      className="mt-2 px-4 py-2 bg-blue-600 rounded-lg text-white"
+    >
+      Post Comment
+    </button>
+  </div>
+)}
+
           </div>
         ))}
       </div>
     </div>
   );
+  
 };
 
 export default FeedsPage;

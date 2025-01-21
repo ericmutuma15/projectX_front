@@ -1,186 +1,122 @@
-import React, { useState, useRef, useEffect } from "react";
-import Webcam from "react-webcam";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
-  const [picture, setPicture] = useState(null);
-  const [useCamera, setUseCamera] = useState(false);
-  const webcamRef = useRef(null);
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);
 
-  // Function to get current location and convert to name
-  const getLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-            );
-            const data = await response.json();
-            setLocation(data.address.city || data.display_name);
-          } catch (error) {
-            console.error("Error fetching location name:", error);
-            setLocation("Location not found");
-          }
+  // Fetch user details
+  const fetchUserDetails = async () => {
+    try {
+      const access_token = localStorage.getItem("access_token");
+      if (!access_token) {
+        console.error("Access token not found");
+        return;
+      }
+
+      const response = await fetch("http://localhost:5555/api/current_user", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${access_token}`,
         },
-        (error) => alert("Failed to retrieve location!")
-      );
-    } else {
-      alert("Geolocation not supported by your browser!");
-    }
-  };
-
-  // Handle file input change
-  const handleFileChange = (e) => {
-    setPicture(e.target.files[0]);
-  };
-
-  // Handle camera capture
-  const handleCameraCapture = () => {
-    const imageSrc = webcamRef.current.getScreenshot();
-    setPicture(imageSrc);
-    setUseCamera(false); // Close camera after capture
-  };
-
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Check if there's an access token
-    const access_token = localStorage.getItem("access_token");
-
-    if (!access_token) {
-      console.error("Access token not found");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("location", location);
-
-    // If the picture is a base64 string (from webcam), append as string
-    if (typeof picture === "string") {
-      formData.append("picture", picture);
-    } else {
-      formData.append("picture", picture); // Upload picture as file
-    }
-
-    // Send the request to the backend
-    fetch("http://localhost:5000/api/profile", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${access_token}`, // Include the access token
-      },
-      credentials: "include", // Allow credentials
-      body: formData, // Send the form data with profile data and picture
-    })
-      .then((res) => res.json())
-      .then(() => {
-        alert("Profile updated successfully!");
-      })
-      .catch((err) => {
-        console.error("Error updating profile:", err);
-        alert("Error updating profile");
       });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data);
+      } else {
+        console.error("Failed to fetch user details");
+      }
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
   };
 
-  // Automatically get location when component mounts
+  // Fetch user posts
+  const fetchUserPosts = async () => {
+    try {
+      const access_token = localStorage.getItem("access_token");
+      if (!access_token) {
+        console.error("Access token not found");
+        return;
+      }
+
+      const response = await fetch("http://localhost:5555/api/user_posts", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPosts(data.posts || []);
+      } else {
+        console.error("Failed to fetch user posts");
+      }
+    } catch (error) {
+      console.error("Error fetching user posts:", error);
+    }
+  };
+
   useEffect(() => {
-    getLocation();
+    fetchUserDetails();
+    fetchUserPosts();
   }, []);
 
+  if (!user) {
+    return <div className="text-white">Loading...</div>;
+  }
+
   return (
-    <div className="bg-gray-900 min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-lg p-8 bg-gray-800 rounded-lg shadow-lg">
-        <div
-          className="relative h-40 bg-cover bg-center rounded-t-lg"
-          style={{
-            backgroundImage: `url(${picture || "/default-profile.png"})`,
-          }}
-        >
-          <div className="absolute bottom-4 left-4 text-white text-2xl font-bold">
-            {name || "User Name"}
-          </div>
+    <div className="bg-gray-900 min-h-screen p-6 text-white">
+      {/* User Details */}
+      <div className="bg-gray-800 p-6 rounded-lg shadow-lg flex items-center space-x-4">
+        <img
+          src={user.picture || "/default-profile.png"}
+          alt="Profile"
+          className="w-24 h-24 rounded-full object-cover border-2 border-blue-500"
+        />
+        <div>
+          <h1 className="text-2xl font-bold">{user.name}</h1>
+          <p className="text-gray-400">{user.location || "Location not set"}</p>
+          <p className="mt-2">{user.description}</p>
+          <Link
+            to="/edit-profile"
+            className="inline-block mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+          >
+            Edit Profile
+          </Link>
         </div>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-6">
-          <div>
-            <label className="block text-gray-300 font-semibold">Name</label>
-            <input
-              type="text"
-              placeholder="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+      </div>
 
-          <div>
-            <label className="block text-gray-300 font-semibold">Description</label>
-            <textarea
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <button
-              type="button"
-              onClick={getLocation}
-              className="text-blue-400 hover:underline"
-            >
-              Get Current Location
-            </button>
-            <p className="text-gray-400 mt-1">
-              {location || "Location not set"}
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-gray-300 font-semibold">Upload Picture</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded mt-1 focus:outline-none"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setUseCamera(true)}
-            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mt-2"
-          >
-            Use Camera
-          </button>
-
-          {useCamera && (
-            <div className="mt-4">
-              <Webcam ref={webcamRef} screenshotFormat="image/jpeg" />
-              <button
-                type="button"
-                onClick={handleCameraCapture}
-                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 mt-2"
+      {/* User Posts */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold mb-4">Your Posts</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {posts.length > 0 ? (
+            posts.map((post) => (
+              <div
+                key={post.id}
+                className="bg-gray-800 p-4 rounded-lg shadow-lg"
               >
-                Capture
-              </button>
-            </div>
+                <h3 className="text-lg font-semibold">{post.content}</h3>
+                {post.media_url && (
+                  <img
+                    src={post.media_url}
+                    alt="Post Media"
+                    className="mt-2 w-full h-auto rounded-lg"
+                  />
+                )}
+                <p className="text-gray-400 mt-2">
+                  Likes: {post.like_count} | Posted on: {new Date(post.timestamp).toLocaleString()}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-400">No posts found</p>
           )}
-
-          <button
-            type="submit"
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 w-full mt-4"
-          >
-            Save Profile
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

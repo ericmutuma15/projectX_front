@@ -23,15 +23,15 @@ const RightSidebar = ({ isSuperUser }) => {
     }
   };
 
-  const nextImages = () => {
+  const nextImage = () => {
     setCurrentIndex((prevIndex) =>
-      images.length > 0 ? (prevIndex + 3) % images.length : 0
+      images.length > 0 ? (prevIndex + 1) % images.length : 0
     );
   };
 
-  const prevImages = () => {
+  const prevImage = () => {
     setCurrentIndex((prevIndex) =>
-      images.length > 0 ? (prevIndex - 3 + images.length) % images.length : 0
+      images.length > 0 ? (prevIndex - 1 + images.length) % images.length : 0
     );
   };
 
@@ -133,14 +133,14 @@ const RightSidebar = ({ isSuperUser }) => {
             <h2 className="text-xl font-semibold">Exclusive</h2>
             <div className="flex space-x-2">
               <button
-                onClick={prevImages}
+                onClick={prevImage}
                 className="p-2 rounded-full hover:bg-gray-700"
                 aria-label="Previous"
               >
                 <FaChevronLeft className="text-white" />
               </button>
               <button
-                onClick={nextImages}
+                onClick={nextImage}
                 className="p-2 rounded-full hover:bg-gray-700"
                 aria-label="Next"
               >
@@ -149,19 +149,17 @@ const RightSidebar = ({ isSuperUser }) => {
             </div>
           </div>
 
-          {/* Image Gallery */}
+          {/* Single Image Display */}
           <div className="space-y-4">
             {images.length > 0 ? (
-              images.slice(currentIndex, currentIndex + 3).map((image, index) => (
-                <div key={image.filename || index} className="flex flex-col items-center">
-                  <img
-                    src={`http://localhost:5555/static/sidebar_images/${image.filename}`}
-                    alt={`Exclusive ${index}`}
-                    className="w-full h-auto rounded-lg"
-                  />
-                  <p className="mt-2">{image.title || "Untitled"}</p>
-                </div>
-              ))
+              <div className="flex flex-col items-center">
+                <img
+                  src={`http://localhost:5555/static/sidebar_images/${images[currentIndex].filename}`}
+                  alt={`Exclusive ${currentIndex}`}
+                  className="w-full h-auto rounded-lg"
+                />
+                <p className="mt-2">{images[currentIndex].title || "Untitled"}</p>
+              </div>
             ) : (
               <p className="text-gray-400">No images available.</p>
             )}

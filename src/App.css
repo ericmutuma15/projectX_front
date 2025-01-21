@@ -92,7 +92,14 @@ body {
   -ms-overflow-style: none;  /* Hide scrollbar for Internet Explorer and Edge */
   scrollbar-width: none;      /* Hide scrollbar for Firefox */
 }
-
+/* Hide scrollbar while preserving scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Edge */
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+  scrollbar-width: none; /* For Firefox */
+}
 
 /* Responsive adjustments for small screens */
 @media (max-width: 640px) {
