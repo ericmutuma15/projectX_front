@@ -8,12 +8,13 @@ const FeedsPage = () => {
   const [error, setError] = useState(null);
   const [previewMedia, setPreviewMedia] = useState(null); // New state for preview media
   const token = localStorage.getItem("access_token");
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   // Fetch posts from the API
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:5555/api/feeds", {
+        const response = await axios.get(`${baseUrl}/api/feeds`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -56,7 +57,7 @@ const FeedsPage = () => {
       );
 
       const response = await axios.post(
-        `http://localhost:5555/api/posts/${postId}/like`,
+        `${baseUrl}/api/posts/${postId}/like`,
         {},
         {
           headers: {
@@ -124,7 +125,7 @@ const FeedsPage = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5555/api/posts/${postId}/comments`,
+        `${baseUrl}/api/posts/${postId}/comments`,
         { content: post.commentText },
         {
           headers: {
@@ -172,12 +173,12 @@ const FeedsPage = () => {
                 controls
                 className="w-full h-full rounded-lg"
               >
-                <source src={`http://127.0.0.1:5555${previewMedia}`} />
+                <source src={`${baseUrl}${previewMedia}`} />
                 Your browser does not support the video tag.
               </video>
             ) : (
               <img
-                src={`http://127.0.0.1:5555${previewMedia}`}
+                src={`${baseUrl}${previewMedia}`}
                 alt="Preview"
                 className="w-full h-full object-contain rounded-lg"
               />
@@ -202,7 +203,7 @@ const FeedsPage = () => {
             <div className="flex items-center space-x-4 mb-4">
               {post.user_photo && (
                 <img
-                  src={`http://127.0.0.1:5555/static/${post.user_photo}`}
+                  src={`${baseUrl}/${post.user_photo}`}
                   alt="User profile"
                   className="w-10 h-10 rounded-full object-cover"
                 />
@@ -229,14 +230,14 @@ const FeedsPage = () => {
                     style={{ maxHeight: "400px" }}
                   >
                     <source
-                      src={`http://127.0.0.1:5555${post.media_url}`}
+                      src={`${baseUrl}${post.media_url}`}
                       type="video/mp4"
                     />
                     Your browser does not support the video tag.
                   </video>
                 ) : (
                   <img
-                    src={`http://127.0.0.1:5555${post.media_url}`}
+                    src={`${baseUrl}${post.media_url}`}
                     alt="Post media"
                     className="w-full rounded-lg"
                     style={{ maxHeight: "400px", objectFit: "cover" }}
@@ -294,7 +295,7 @@ const FeedsPage = () => {
                       {/* Comment User's Profile Picture */}
                       {comment.user_photo && (
                         <img
-                          src={`http://127.0.0.1:5555/static/${comment.user_photo}`}
+                          src={`${baseUrl}/static/${comment.user_photo}`}
                           alt="Comment user profile"
                           className="w-8 h-8 rounded-full object-cover"
                         />

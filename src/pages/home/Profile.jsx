@@ -7,6 +7,7 @@ const Profile = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedPostId, setExpandedPostId] = useState(null); // Track which post video is expanded
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   // Fetch user details
   const fetchUserDetails = async () => {
@@ -17,7 +18,7 @@ const Profile = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:5555/api/current_user", {
+      const response = await fetch(`${baseUrl}/api/current_user`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -44,7 +45,7 @@ const Profile = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:5555/api/user_posts", {
+      const response = await fetch(`${baseUrl}/api/user_posts`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${access_token}`,

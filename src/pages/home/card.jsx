@@ -6,6 +6,7 @@ const Card = () => {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true); // Loading state to track fetching
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   const fetchUsers = async () => {
     const token = localStorage.getItem("access_token");
@@ -16,7 +17,7 @@ const Card = () => {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:5555/api/users", {
+      const response = await fetch(`${baseUrl}/api/users`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,7 +77,7 @@ const Card = () => {
   const handleAction = async (userId, action) => {
     if (action === "like") {
       const success = await handleApiAction(
-        "http://127.0.0.1:5555/api/send-friend-request",
+        `${baseUrl}/api/send-friend-request`,
         { userId }
       );
 
@@ -87,7 +88,7 @@ const Card = () => {
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
 
       const success = await handleApiAction(
-        "http://127.0.0.1:5555/api/reject-user",
+        `${baseUrl}/api/reject-user`,
         { userId }
       );
 
@@ -118,7 +119,7 @@ const Card = () => {
         >
           <img
             className="w-16 h-16 rounded-full object-cover mr-4"
-            src={`http://127.0.0.1:5555/static/${user.picture}`}
+            src={`${baseUrl}/static/${user.picture}`}
             alt="User Profile"
           />
 
