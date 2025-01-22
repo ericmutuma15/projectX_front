@@ -35,11 +35,13 @@ initializeApp(firebaseConfig);
 const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true); // New state for loading
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
-      fetch("http://localhost:5555/api/current_user", {
+      fetch(`${baseUrl}/api/current_user`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())
@@ -97,7 +99,7 @@ const SignUp = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5555/api/register", {
+      const response = await fetch(`${baseUrl}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -223,7 +225,7 @@ const Login = () => {
     const { email, password } = formData;
 
     try {
-      const response = await fetch("http://localhost:5555/api/login", {
+      const response = await fetch(`${baseUrl}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -264,7 +266,7 @@ const Login = () => {
       const email = result.user.email;
 
       // Verify with backend
-      const response = await fetch("http://localhost:5555/api/google-login", {
+      const response = await fetch(`${baseUrl}/api/google-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -362,7 +364,7 @@ const Home = () => {
       const token = localStorage.getItem("access_token");
       if (token) {
         try {
-          const response = await fetch("http://localhost:5555/api/current_user", {
+          const response = await fetch(`${baseUrl}/api/current_user`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -470,12 +472,12 @@ const Home = () => {
                 className="w-full rounded-lg"
                 style={{ maxHeight: "70vh" }}
               >
-                <source src={`http://127.0.0.1:5555${selectedMedia.mediaUrl}`} type="video/mp4" />
+                <source src={`${baseUrl}${selectedMedia.mediaUrl}`} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
             ) : (
               <img
-                src={`http://127.0.0.1:5555${selectedMedia.mediaUrl}`}
+                src={`${baseUrl}${selectedMedia.mediaUrl}`}
                 alt="Preview"
                 className="w-full rounded-lg"
                 style={{ maxHeight: "70vh", objectFit: "cover" }}

@@ -9,6 +9,7 @@ const CreatePost = ({ onPostCreated }) => {
   const [error, setError] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Emoji picker visibility
   const navigate = useNavigate();
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   const handleContentChange = (e) => {
     setContent(e.target.value);
@@ -44,7 +45,7 @@ const CreatePost = ({ onPostCreated }) => {
     }
 
     try {
-      const response = await fetch("http://localhost:5555/api/posts", {
+      const response = await fetch(`${baseUrl}/api/posts`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,

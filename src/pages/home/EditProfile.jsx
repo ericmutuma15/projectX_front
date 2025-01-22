@@ -10,6 +10,7 @@ const EditProfile = () => {
   const [alert, setAlert] = useState({ message: "", type: "" });
   const [locationSuggestions, setLocationSuggestions] = useState([]); // Add this line to define locationSuggestions state
   const navigate = useNavigate();
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   // Fetch current user details to populate the form
   const fetchUserDetails = async () => {
@@ -20,7 +21,7 @@ const EditProfile = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:5555/api/current_user", {
+      const response = await fetch(`${baseUrl}/api/current_user`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -98,7 +99,7 @@ const EditProfile = () => {
       if (location) formData.append("location", location); // Include location if provided
       if (picture) formData.append("picture", picture); // Include picture if provided
 
-      const response = await fetch("http://localhost:5555/api/profile", {
+      const response = await fetch(`${baseUrl}/api/profile`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${access_token}`,

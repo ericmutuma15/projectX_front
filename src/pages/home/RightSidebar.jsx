@@ -6,6 +6,7 @@ const RightSidebar = ({ isSuperUser }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default closed on small screens
   const [selectedFile, setSelectedFile] = useState(null);
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     fetchImages();
@@ -13,7 +14,7 @@ const RightSidebar = ({ isSuperUser }) => {
 
   const fetchImages = async () => {
     try {
-      const response = await fetch("http://localhost:5555/api/sidebar_images");
+      const response = await fetch(`${baseUrl}/api/sidebar_images`);
       if (!response.ok) throw new Error("Failed to fetch images");
 
       const data = await response.json();
@@ -46,7 +47,7 @@ const RightSidebar = ({ isSuperUser }) => {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetch("http://localhost:5555/api/upload_sidebar_image", {
+      const response = await fetch(`${baseUrl}/api/upload_sidebar_image`, {
         method: "POST",
         body: formData,
       });
@@ -154,7 +155,7 @@ const RightSidebar = ({ isSuperUser }) => {
             {images.length > 0 ? (
               <div className="flex flex-col items-center">
                 <img
-                  src={`http://localhost:5555/static/sidebar_images/${images[currentIndex].filename}`}
+                  src={`${baseUrl}/static/sidebar_images/${images[currentIndex].filename}`}
                   alt={`Exclusive ${currentIndex}`}
                   className="w-full h-auto rounded-lg"
                 />
