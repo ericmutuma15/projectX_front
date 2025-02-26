@@ -1,92 +1,53 @@
 import React, { useEffect, useState } from "react";
-import { FaCheck, FaTimes } from "react-icons/fa";
-import LoadingPage from "./LoadingPage"; // Import your LoadingPage component
+import { FaUserPlus, FaUser } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import LoadingPage from "./LoadingPage";
 
 const Card = () => {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
-
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch(`${baseUrl}/api/users`, {
-        credentials: "include", // Include cookies
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || `Failed to fetch users: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const updatedUsers = data.map((user) => ({
-        ...user,
-        locationName: user.location || "Location not available",
-      }));
-
-      setUsers(updatedUsers);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-      setError(err.message || "Failed to load users. Please try again later.");
-      setLoading(false);
-    }
-  };
-
-  const handleApiAction = async (url, payload) => {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // Include cookies
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || `Request failed with status ${response.status}`);
-      }
-
-      return true;
-    } catch (err) {
-      console.error("API Action Error:", err);
-      alert(err.message || "An error occurred. Please try again.");
-      return false;
-    }
-  };
-
-  const handleAction = async (userId, action) => {
-    if (action === "like") {
-      const success = await handleApiAction(`${baseUrl}/api/send-friend-request`, { userId });
-
-      if (success) {
-        alert("Friend request sent!");
-      }
-    } else if (action === "reject") {
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-
-      const success = await handleApiAction(`${baseUrl}/api/reject-user`, { userId });
-
-      if (!success) {
-        fetchUsers();
-      }
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/api/users`, { credentials: "include" });
+
+        if (!response.ok) throw new Error("Failed to fetch users");
+
+        const data = await response.json();
+        setUsers(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchUsers();
   }, []);
 
-  if (loading) {
-    return <LoadingPage />;
-  }
+  const sendFriendRequest = async (userId) => {
+    try {
+      const response = await fetch(`${baseUrl}/api/send-friend-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userId }),
+      });
 
-  if (error) {
-    return <div className="text-center text-red-500 p-4">{error}</div>;
-  }
+      if (!response.ok) throw new Error("Failed to send friend request");
+
+      alert("Friend request sent!");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  if (loading) return <LoadingPage />;
+  if (error) return <div className="text-center text-red-500 p-4">{error}</div>;
 
   return (
     <div className="p-4 bg-gray-900 space-y-4 scrollable">
@@ -104,21 +65,24 @@ const Card = () => {
           <div className="flex-1">
             <div className="font-bold text-lg">{user.name}</div>
             <p className="text-gray-500 text-sm">{user.description}</p>
-            <p className="text-gray-400 text-xs">{user.locationName}</p>
+            <p className="text-gray-400 text-xs">{user.location || "Location not available"}</p>
           </div>
 
           <div className="flex space-x-4">
+            {/* Add Friend Button */}
             <button
-              onClick={() => handleAction(user.id, "like")}
+              onClick={() => sendFriendRequest(user.id)}
+              className="text-blue-500 hover:text-blue-700 transition-colors duration-300"
+            >
+              <FaUserPlus size={20} />
+            </button>
+
+            {/* View Profile Button */}
+            <button
+              onClick={() => navigate(`/profile/${user.id}`)} // Navigate to the user profile page
               className="text-green-500 hover:text-green-700 transition-colors duration-300"
             >
-              <FaCheck size={20} />
-            </button>
-            <button
-              onClick={() => handleAction(user.id, "reject")}
-              className="text-red-500 hover:text-red-700 transition-colors duration-300"
-            >
-              <FaTimes size={20} />
+              <FaUser size={20} />
             </button>
           </div>
         </div>

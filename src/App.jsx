@@ -67,6 +67,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/home" element={<Home currentUser={currentUser} />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:userId" element={<Profile />} /> {/* Dynamic profile view */}
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/add-users" element={<Card />} />
           <Route path="/edit-profile" element={<EditProfile />} />

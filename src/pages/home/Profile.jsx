@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import LoadingPage from "./LoadingPage"; // Import the LoadingPage component
+import { Link } from "react-router-dom";
 
 const Profile = () => {
+  const { userId } = useParams(); // Get userId from URL if available
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,8 +13,12 @@ const Profile = () => {
 
   // Fetch user details
   const fetchUserDetails = async () => {
+    const endpoint = userId
+      ? `${baseUrl}/api/user/${userId}`
+      : `${baseUrl}/api/current_user`;
+
     try {
-      const response = await fetch(`${baseUrl}/api/current_user`, {
+      const response = await fetch(endpoint, {
         method: "GET",
         credentials: "include", // Include cookies in the request
       });
@@ -28,14 +34,18 @@ const Profile = () => {
     }
   };
 
-  // Fetch user posts
+  // Fetch user posts (Show their posts when viewing their profile)
   const fetchUserPosts = async () => {
+    const endpoint = userId
+      ? `${baseUrl}/api/user_posts/${userId}` // Fetch specific user's posts
+      : `${baseUrl}/api/user_posts`; // Fetch logged-in user's posts
+  
     try {
-      const response = await fetch(`${baseUrl}/api/user_posts`, {
+      const response = await fetch(endpoint, {
         method: "GET",
-        credentials: "include", // Include cookies in the request
+        credentials: "include", // Include cookies for authentication
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         setPosts(data.posts || []);
@@ -46,6 +56,7 @@ const Profile = () => {
       console.error("Error fetching user posts:", error);
     }
   };
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,19 +65,15 @@ const Profile = () => {
       setLoading(false);
     };
     fetchData();
-  }, []);
+  }, [userId]); // Refetch when userId changes
 
   const handleVideoClick = (postId) => {
-    setExpandedPostId(expandedPostId === postId ? null : postId); // Toggle expanded state for the video
+    setExpandedPostId(expandedPostId === postId ? null : postId);
   };
 
-  if (loading) {
-    return <LoadingPage />; // Show the LoadingPage while loading
-  }
+  if (loading) return <LoadingPage />;
 
-  if (!user) {
-    return <div className="text-white">User not found.</div>;
-  }
+  if (!user) return <div className="text-white">User not found.</div>;
 
   return (
     <div className="bg-gray-900 min-h-screen p-6 text-white overflow-hidden">
@@ -80,36 +87,35 @@ const Profile = () => {
           />
           <div>
             <h1 className="text-2xl font-bold">{user.name}</h1>
-            <p className="text-gray-400">
-              {user.location || "Location not set"}
-            </p>
+            <p className="text-gray-400">{user.location || "Location not set"}</p>
             <p className="mt-2">{user.description}</p>
-            <Link
-              to="/edit-profile"
-              className="inline-block mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300"
-            >
-              Edit Profile
-            </Link>
+
+            {/* Show Edit Profile button only if it's the logged-in user's profile */}
+            {!userId && (
+              <Link
+                to="/edit-profile"
+                className="inline-block mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300"
+              >
+                Edit Profile
+              </Link>
+            )}
           </div>
         </div>
 
         {/* User Posts */}
         <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">Your Posts</h2>
+          <h2 className="text-xl font-bold mb-4">Posts</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {posts.length > 0 ? (
               posts.map((post) => (
-                <div
-                  key={post.id}
-                  className="bg-gray-900 p-4 rounded-lg shadow-lg"
-                >
+                <div key={post.id} className="bg-gray-900 p-4 rounded-lg shadow-lg">
                   <h3 className="text-lg font-semibold">{post.content}</h3>
                   {post.media_url ? (
                     post.media_url.match(/\.(jpeg|jpg|gif|png)$/) ? (
                       <img
                         src={post.media_url}
                         alt="Post Media"
-                        className="mt-2 w-full h-48 object-cover rounded-lg" // Fixed size for images
+                        className="mt-2 w-full h-48 object-cover rounded-lg"
                       />
                     ) : post.media_url.match(/\.(mp4|webm|ogg)$/) ? (
                       <div
@@ -121,7 +127,7 @@ const Profile = () => {
                           src={post.media_url}
                           className={`w-full h-full object-cover rounded-lg ${
                             expandedPostId === post.id ? "h-auto" : ""
-                          }`} // Expand video height on click
+                          }`}
                         />
                       </div>
                     ) : (
