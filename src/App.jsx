@@ -39,18 +39,20 @@ const App = () => {
 
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      fetch(`${baseUrl}/api/current_user`, {
-        headers: { Authorization: `Bearer ${token}` },
+    // Ensure that cookies are sent with the request by adding credentials: 'include'
+    fetch(`${baseUrl}/api/current_user`, {
+      method: "GET", // Assuming this is a GET request to fetch current user
+      credentials: "include", // This ensures cookies are sent with the request
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch current user');
+        }
+        return res.json();
       })
-        .then((res) => res.json())
-        .then((data) => setCurrentUser(data))
-        .catch((err) => console.error("Failed to fetch current user:", err))
-        .finally(() => setLoading(false)); // Stop loading after fetch
-    } else {
-      setLoading(false); // Stop loading if no token
-    }
+      .then((data) => setCurrentUser(data))
+      .catch((err) => console.error("Failed to fetch current user:", err))
+      .finally(() => setLoading(false)); // Stop loading after fetch
   }, []);
 
   if (loading) {
@@ -76,6 +78,7 @@ const App = () => {
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -213,6 +216,7 @@ const SignUp = () => {
 
 const Login = () => {
   const navigate = useNavigate();
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const [formData, setFormData] = useState({ email: "", password: "" });
 
   const handleChange = (e) => {
@@ -223,29 +227,25 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     const { email, password } = formData;
-
+  
     try {
       const response = await fetch(`${baseUrl}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.access_token) {
-            // Store the JWT token in localStorage
-            localStorage.setItem("access_token", data.access_token);
-            showLoginSuccessAlert();
-            navigate("/home");
-          } else {
-            alert("Login failed!");
-          }
-        })
-        .catch((err) => console.error("Error:", err));
+        credentials: "include",  // 🔥 Allow cookies
+      });
+  
+      if (response.ok) {
+        showLoginSuccessAlert();
+        navigate("/home");
+      } else {
+        alert("Login failed!");
+      }
     } catch (error) {
       console.error("Error during login:", error);
     }
-  };
+  };  
 
   const showLoginSuccessAlert = () => {
     const alertBox = document.getElementById("login-alert");
@@ -352,43 +352,54 @@ const Login = () => {
     </div>
   );
 };
+import { FaBars, FaSearch, FaSignOutAlt } from "react-icons/fa"; // Import icons
 
 const Home = () => {
   const navigate = useNavigate();
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const [user, setUser] = useState(null);
   const [selectedMedia, setSelectedMedia] = useState(null); // State for selected media
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for sidebar toggle
 
   // Fetch user data when the component loads
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        try {
-          const response = await fetch(`${baseUrl}/api/current_user`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setUser(data); // Update the user state with the current user's data
-          } else {
-            console.error("Failed to fetch current user data");
-          }
-        } catch (error) {
-          console.error("Error fetching current user data:", error);
+      try {
+        const response = await fetch(`${baseUrl}/api/current_user`, {
+          method: "GET",
+          credentials: "include", // 🔥 Include cookies in request
+        });
+    
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data);
+        } else {
+          console.error("Failed to fetch current user data");
         }
+      } catch (error) {
+        console.error("Error fetching current user data:", error);
       }
     };
-
     fetchCurrentUser();
   }, []);
 
   // Log out logic
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/api/logout`, {
+        method: "POST",
+        credentials: "include", // Important! Ensures cookies are sent with the request
+      });
+  
+      if (response.ok) {
+        // Redirect user to login page
+        navigate("/login");
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
   };
 
   // Function to handle media click and show preview
@@ -401,25 +412,46 @@ const Home = () => {
     setSelectedMedia(null);
   };
 
+  // Function to toggle sidebar visibility
+  const handleToggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
-    <div className="h-screen w-full flex bg-gray-900">
-      {/* Left Sidebar - Full Height */}
-      <div className="w-64 bg-gray-900 flex flex-col fixed top-0 left-0 h-full z-10">
+    <div className="h-screen w-full flex bg-gray-900 text-white">
+      {/* Left Sidebar - Always visible on large screens, toggleable on small screens */}
+      <div
+        className={`w-64 bg-gray-900 flex flex-col fixed top-0 left-0 h-full z-10 lg:block ${
+          isSidebarOpen ? "block" : "hidden"
+        }`}
+      >
         <SideBar />
       </div>
-
-      {/* Main Content - Adjusted for Sidebar */}
-      <div className="flex-1 flex flex-col ml-64">
+  
+      {/* Main Content Wrapper */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          isSidebarOpen ? "ml-64" : "lg:ml-0"
+        }`}
+      >
         {/* Sticky Header */}
         <div className="sticky top-0 bg-gray-900 w-full h-16 flex justify-between items-center p-4 z-10">
           <div className="flex items-center space-x-4">
+            {/* Sidebar Toggle Button (for small screens) */}
+            <button className="lg:hidden text-white" onClick={handleToggleSidebar}>
+              <FaBars size={24} />
+            </button>
+  
+            {/* Search Icon (visible on small screens) */}
+            <div className="flex-1 mx-4 flex justify-center lg:hidden">
+              <button className="text-white">
+                <FaSearch size={24} />
+              </button>
+            </div>
+  
             {/* Profile Picture */}
             {user?.picture ? (
-              <img
-                src={user.picture}
-                alt="Profile"
-                className="w-12 h-12 rounded-full object-cover"
-              />
+              <img src={user.picture} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
             ) : (
               <div className="w-12 h-12 rounded-full bg-gray-500 flex items-center justify-center text-white">
                 {user?.name?.charAt(0).toUpperCase() || "U"}
@@ -427,51 +459,50 @@ const Home = () => {
             )}
             <span className="text-white text-lg">{user?.name || "User"}</span>
           </div>
-
-          {/* Log Out Button */}
+  
+          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="px-4 py-2 text-white bg-gray-700 rounded-md shadow-md hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="px-4 py-2 text-white bg-gray-700 rounded-md shadow-md hover:bg-red-600 transition duration-300"
           >
-            Log Out
+            <FaSignOutAlt size={20} />
           </button>
         </div>
-
+  
         {/* Main Feeds Section */}
-        <div className="flex-1 flex bg-gray-900">
-          {/* Main Feeds Section */}
+        <div className="flex flex-1 bg-gray-900 lg:ml-12 ">
+          {/* Feeds Page */}
           <div
-            className="flex-1 bg-gray-900 overflow-y-auto no-scrollbar"
+            className={`flex-1 bg-gray-900 overflow-y-auto no-scrollbar transition-all duration-300 ${
+              isSidebarOpen ? "lg:ml-64 lg:mr-64" : "lg:ml-0 lg:mr-0"
+            }`}
             style={{ height: "calc(100vh - 4rem)" }}
           >
-            <FeedsPage onMediaClick={handleMediaClick} />
+            <div className="flex justify-center">
+              <div className="max-w-7xl w-full">
+                <FeedsPage onMediaClick={handleMediaClick} />
+              </div>
+            </div>
           </div>
-
-          {/* Right Sidebar */}
+  
+          {/* Right Sidebar (Visible on large screens) */}
           <div className="lg:w-64 hidden lg:block bg-gray-900">
             <RightSidebar />
           </div>
         </div>
       </div>
-
+  
       {/* Media Preview Overlay */}
       {selectedMedia && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-20">
           <div className="relative max-w-3xl w-full bg-gray-800 p-6 rounded-lg">
-            <button
-              onClick={handleClosePreview}
-              className="absolute top-4 right-4 text-white text-2xl"
-            >
+            <button onClick={handleClosePreview} className="absolute top-4 right-4 text-white text-2xl">
               &times;
             </button>
-
+  
             {/* Media Preview */}
             {selectedMedia.mediaUrl.endsWith(".mp4") || selectedMedia.mediaUrl.endsWith(".webm") ? (
-              <video
-                controls
-                className="w-full rounded-lg"
-                style={{ maxHeight: "70vh" }}
-              >
+              <video controls className="w-full rounded-lg" style={{ maxHeight: "70vh" }}>
                 <source src={`${baseUrl}${selectedMedia.mediaUrl}`} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
@@ -483,7 +514,7 @@ const Home = () => {
                 style={{ maxHeight: "70vh", objectFit: "cover" }}
               />
             )}
-
+  
             {/* Caption */}
             <p className="text-white mt-4">{selectedMedia.caption}</p>
           </div>
@@ -491,7 +522,7 @@ const Home = () => {
       )}
     </div>
   );
+  
 };
-
 
 export default App;

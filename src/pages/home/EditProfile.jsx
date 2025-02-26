@@ -8,24 +8,16 @@ const EditProfile = () => {
   const [picture, setPicture] = useState(null);
   const [preview, setPreview] = useState("/default-profile.png");
   const [alert, setAlert] = useState({ message: "", type: "" });
-  const [locationSuggestions, setLocationSuggestions] = useState([]); // Add this line to define locationSuggestions state
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-  // Fetch current user details to populate the form
+  // Fetch current user details from the API
   const fetchUserDetails = async () => {
     try {
-      const access_token = localStorage.getItem("access_token");
-      if (!access_token) {
-        console.error("Access token not found");
-        return;
-      }
-
       const response = await fetch(`${baseUrl}/api/current_user`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
+        credentials: "include", // Include cookies in the request
       });
 
       if (response.ok) {
@@ -58,10 +50,10 @@ const EditProfile = () => {
   // Fetch location suggestions from Nominatim API
   const handleLocationSearch = async (e) => {
     const query = e.target.value;
-    setLocation(query); // Update the location input value
+    setLocation(query);
 
     if (query.length < 3) {
-      setLocationSuggestions([]); // Clear suggestions for short queries
+      setLocationSuggestions([]);
       return;
     }
 
@@ -70,7 +62,7 @@ const EditProfile = () => {
         `https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1`
       );
       const data = await response.json();
-      setLocationSuggestions(data); // Update suggestions based on API response
+      setLocationSuggestions(data);
     } catch (error) {
       console.error("Error fetching location suggestions:", error);
     }
@@ -78,8 +70,8 @@ const EditProfile = () => {
 
   // Handle selection of a location suggestion
   const handleLocationSelect = (selectedLocation) => {
-    setLocation(selectedLocation.display_name); // Set the full location name
-    setLocationSuggestions([]); // Clear suggestions after selection
+    setLocation(selectedLocation.display_name);
+    setLocationSuggestions([]);
   };
 
   // Handle form submission
@@ -87,29 +79,21 @@ const EditProfile = () => {
     e.preventDefault();
 
     try {
-      const access_token = localStorage.getItem("access_token");
-      if (!access_token) {
-        console.error("Access token not found");
-        return;
-      }
-
       const formData = new FormData();
-      if (name) formData.append("name", name); // Include name if it's provided
-      if (description) formData.append("description", description); // Include description if provided
-      if (location) formData.append("location", location); // Include location if provided
-      if (picture) formData.append("picture", picture); // Include picture if provided
+      if (name) formData.append("name", name);
+      if (description) formData.append("description", description);
+      if (location) formData.append("location", location);
+      if (picture) formData.append("picture", picture);
 
       const response = await fetch(`${baseUrl}/api/profile`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
+        credentials: "include", // Include cookies in the request
         body: formData,
       });
 
       if (response.ok) {
         setAlert({ message: "Profile updated successfully!", type: "success" });
-        navigate("/profile"); // Redirect to profile page
+        navigate("/profile");
       } else {
         setAlert({ message: "Error updating profile", type: "error" });
       }

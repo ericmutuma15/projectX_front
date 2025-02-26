@@ -5,23 +5,13 @@ import LoadingPage from "./LoadingPage"; // Import your LoadingPage component
 const Card = () => {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true); // Loading state to track fetching
+  const [loading, setLoading] = useState(true);
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   const fetchUsers = async () => {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      setError("Authorization token is missing. Please log in again.");
-      setLoading(false); // Stop loading in case of error
-      return;
-    }
-
     try {
       const response = await fetch(`${baseUrl}/api/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
+        credentials: "include", // Include cookies
       });
 
       if (!response.ok) {
@@ -36,28 +26,22 @@ const Card = () => {
       }));
 
       setUsers(updatedUsers);
-      setLoading(false); // Stop loading when data is fetched
+      setLoading(false);
     } catch (err) {
       console.error("Error fetching users:", err);
       setError(err.message || "Failed to load users. Please try again later.");
-      setLoading(false); // Stop loading in case of error
+      setLoading(false);
     }
   };
 
   const handleApiAction = async (url, payload) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("Authorization token is missing. Please log in again.");
-      return false;
-    }
-
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        credentials: "include", // Include cookies
         body: JSON.stringify(payload),
       });
 
@@ -76,10 +60,7 @@ const Card = () => {
 
   const handleAction = async (userId, action) => {
     if (action === "like") {
-      const success = await handleApiAction(
-        `${baseUrl}/api/send-friend-request`,
-        { userId }
-      );
+      const success = await handleApiAction(`${baseUrl}/api/send-friend-request`, { userId });
 
       if (success) {
         alert("Friend request sent!");
@@ -87,10 +68,7 @@ const Card = () => {
     } else if (action === "reject") {
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
 
-      const success = await handleApiAction(
-        `${baseUrl}/api/reject-user`,
-        { userId }
-      );
+      const success = await handleApiAction(`${baseUrl}/api/reject-user`, { userId });
 
       if (!success) {
         fetchUsers();
@@ -103,7 +81,7 @@ const Card = () => {
   }, []);
 
   if (loading) {
-    return <LoadingPage />; // Show LoadingPage while data is loading
+    return <LoadingPage />;
   }
 
   if (error) {

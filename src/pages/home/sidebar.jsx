@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   FaHome,
   FaBell,
@@ -7,21 +7,14 @@ import {
   FaUser,
   FaDollarSign,
   FaPlus,
-  FaBars,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const Sidebar = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   return (
     <div className="relative">
       {/* Sidebar for larger screens */}
-      <div
-        className={`h-screen w-64 bg-gray-900 text-white shadow-lg fixed left-0 top-0 z-40 flex flex-col ${
-          isSidebarOpen ? "block" : "hidden"
-        } lg:flex`}
-      >
+      <div className="h-screen w-64 bg-gray-900 text-white shadow-lg fixed left-0 top-0 z-40 flex flex-col lg:flex">
         {/* Navigation items */}
         <div className="flex flex-col justify-between h-full p-4 overflow-y-auto">
           <div className="space-y-4">
@@ -70,14 +63,6 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-
-      {/* Sidebar Toggle Button for mobile */}
-      <button
-        className="lg:hidden fixed top-16 left-4 bg-gray-900 text-white p-2 rounded-full shadow-lg z-50"
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-      >
-        <FaBars className="text-xl" />
-      </button>
     </div>
   );
 };

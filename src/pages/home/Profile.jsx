@@ -12,17 +12,9 @@ const Profile = () => {
   // Fetch user details
   const fetchUserDetails = async () => {
     try {
-      const access_token = localStorage.getItem("access_token");
-      if (!access_token) {
-        console.error("Access token not found");
-        return;
-      }
-
       const response = await fetch(`${baseUrl}/api/current_user`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
+        credentials: "include", // Include cookies in the request
       });
 
       if (response.ok) {
@@ -39,17 +31,9 @@ const Profile = () => {
   // Fetch user posts
   const fetchUserPosts = async () => {
     try {
-      const access_token = localStorage.getItem("access_token");
-      if (!access_token) {
-        console.error("Access token not found");
-        return;
-      }
-
       const response = await fetch(`${baseUrl}/api/user_posts`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
+        credentials: "include", // Include cookies in the request
       });
 
       if (response.ok) {
@@ -96,7 +80,9 @@ const Profile = () => {
           />
           <div>
             <h1 className="text-2xl font-bold">{user.name}</h1>
-            <p className="text-gray-400">{user.location || "Location not set"}</p>
+            <p className="text-gray-400">
+              {user.location || "Location not set"}
+            </p>
             <p className="mt-2">{user.description}</p>
             <Link
               to="/edit-profile"

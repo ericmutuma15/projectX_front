@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaHeart } from "react-icons/fa";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const FeedsPage = () => {
   const [posts, setPosts] = useState([]);
@@ -120,7 +121,7 @@ const FeedsPage = () => {
     const post = posts.find((post) => post.id === postId);
 
     if (!post.commentText.trim()) {
-      return; // Prevent submitting empty comments
+      return;
     }
 
     try {
@@ -130,18 +131,17 @@ const FeedsPage = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
+          withCredentials: true, // 🔹 This is crucial for sending cookies
         }
       );
 
-      // Add the new comment to the post's comments list
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId
             ? {
                 ...post,
-                comments: [...post.comments, response.data.comment],
+                comments: [...post.comments, response.data],
                 commentText: "",
               }
             : post
@@ -163,16 +163,13 @@ const FeedsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen bg-gray-900 text-white p-6 flex justify-center">
       {/* Media Preview Modal */}
       {previewMedia && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-          <div className="relative max-w-3xl max-h-[80%]">
+        <div className="fixed inset-0 flex justify-center items-center bg-opacity-60 z-50">
+          <div className="relative max-w-3xl max-h-[85%] bg-gray-900 p-4 rounded-lg shadow-xl">
             {previewMedia.endsWith(".mp4") || previewMedia.endsWith(".webm") ? (
-              <video
-                controls
-                className="w-full h-full rounded-lg"
-              >
+              <video controls className="w-full h-full rounded-lg">
                 <source src={`${baseUrl}${previewMedia}`} />
                 Your browser does not support the video tag.
               </video>
@@ -185,7 +182,7 @@ const FeedsPage = () => {
             )}
             <button
               onClick={closePreview}
-              className="absolute top-2 right-2 text-white text-3xl"
+              className="absolute top-3 right-3 text-white text-3xl hover:text-gray-400 transition"
             >
               &times;
             </button>
@@ -193,41 +190,45 @@ const FeedsPage = () => {
         </div>
       )}
 
-      <div className="space-y-6">
+      {/* Posts Section */}
+
+      <div className="w-full max-w-3xl flex flex-col space-y-8 mx-auto bg-gray-900 lg:mr-12">
+
         {posts.map((post) => (
           <div
             key={post.id}
-            className="bg-gray-900 p-6 rounded-lg shadow-lg max-w-3xl mx-auto"
+            className=" p-6 rounded-xl shadow-lg w-full border border-gray-800 mx-auto"
           >
-            {/* Post Content */}
-            <div className="flex items-center space-x-4 mb-4">
+            {/* User Info Section */}
+            <div className="flex items-center space-x-4 mb-5">
               {post.user_photo && (
                 <img
-                  src={`${baseUrl}/${post.user_photo}`}
+                  src={`${baseUrl}/static/${post.user_photo}`}
                   alt="User profile"
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="w-12 h-12 rounded-full object-cover border border-gray-700"
                 />
               )}
               <div>
-                <p className="text-lg font-bold text-white">{post.user_name}</p>
-                <p className="text-sm text-gray-400">
+                <p className="text-lg font-semibold text-white">
+                  {post.user_name}
+                </p>
+                <p className="text-xs text-gray-400">
                   {new Date(post.timestamp).toLocaleString()}
                 </p>
               </div>
             </div>
 
-            {/* Media Section */}
+            {/* Media Section (Perfectly Centered) */}
             {post.media_url && (
               <div
-                className="mb-4 cursor-pointer"
-                onClick={() => handleMediaClick(post.media_url)} // Trigger media preview on click
+                className="mb-4 flex justify-center items-center w-full"
+                onClick={() => handleMediaClick(post.media_url)}
               >
                 {post.media_url.endsWith(".mp4") ||
                 post.media_url.endsWith(".webm") ? (
                   <video
                     controls
-                    className="w-full rounded-lg"
-                    style={{ maxHeight: "400px" }}
+                    className="rounded-lg border border-gray-800 w-full max-w-[500px] h-auto mx-auto"
                   >
                     <source
                       src={`${baseUrl}${post.media_url}`}
@@ -239,31 +240,34 @@ const FeedsPage = () => {
                   <img
                     src={`${baseUrl}${post.media_url}`}
                     alt="Post media"
-                    className="w-full rounded-lg"
-                    style={{ maxHeight: "400px", objectFit: "cover" }}
+                    className="rounded-lg object-contain border border-gray-800 w-full max-w-[500px] h-auto mx-auto"
                   />
                 )}
               </div>
             )}
-            <p className="text-gray-300 mb-4">{post.content}</p>
+
+            {/* Post Content */}
+            <p className="text-gray-300 mb-4 leading-relaxed text-center">
+              {post.content}
+            </p>
 
             {/* Actions Section */}
             <div className="flex justify-between items-center mt-4">
               <button
                 onClick={() => handleLike(post.id)}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 hover:text-red-500 transition"
               >
                 <FaHeart
                   className={`w-5 h-5 ${
                     post.isLiked ? "text-red-500" : "text-gray-400"
                   }`}
                 />
-                <span>{post.likes}</span>
+                <span className="text-sm">{post.likes}</span>
               </button>
 
               <button
                 onClick={() => handleCommentToggle(post.id)}
-                className="flex items-center space-x-2 text-gray-400 hover:text-blue-500"
+                className="flex items-center space-x-2 text-gray-400 hover:text-blue-500 transition"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -279,7 +283,7 @@ const FeedsPage = () => {
                     d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m-6-6h6a2 2 0 012 2v4a2 2 0 01-2 2H9a2 2 0 01-2-2v-4a2 2 0 012-2z"
                   />
                 </svg>
-                <span>Comment</span>
+                <span className="text-sm">Comment</span>
               </button>
             </div>
 
@@ -290,14 +294,14 @@ const FeedsPage = () => {
                   {post.comments.map((comment) => (
                     <div
                       key={comment.id}
-                      className="bg-gray-700 p-4 rounded-lg flex items-start space-x-4"
+                      className="bg-gray-800 p-4 rounded-lg flex items-start space-x-4 border border-gray-700"
                     >
                       {/* Comment User's Profile Picture */}
                       {comment.user_photo && (
                         <img
                           src={`${baseUrl}/static/${comment.user_photo}`}
                           alt="Comment user profile"
-                          className="w-8 h-8 rounded-full object-cover"
+                          className="w-8 h-8 rounded-full object-cover border border-gray-600"
                         />
                       )}
 
@@ -320,12 +324,12 @@ const FeedsPage = () => {
                   value={post.commentText}
                   onChange={(e) => handleCommentChange(post.id, e.target.value)}
                   placeholder="Add a comment..."
-                  className="mt-4 w-full p-2 rounded-lg bg-gray-700 text-white"
+                  className="mt-4 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows="3"
                 />
                 <button
                   onClick={() => handleCommentSubmit(post.id)}
-                  className="mt-2 px-4 py-2 bg-blue-600 rounded-lg text-white"
+                  className="mt-3 px-5 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-500 transition"
                 >
                   Post Comment
                 </button>
