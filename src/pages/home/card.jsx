@@ -13,7 +13,9 @@ const Card = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`${baseUrl}/api/users`, { credentials: "include" });
+        const response = await fetch(`${baseUrl}/api/users`, {
+          credentials: "include",
+        });
 
         if (!response.ok) throw new Error("Failed to fetch users");
 
@@ -38,10 +40,17 @@ const Card = () => {
         body: JSON.stringify({ userId }),
       });
 
-      if (!response.ok) throw new Error("Failed to send friend request");
+      const text = await response.text(); // Log the raw response
+      console.log("Raw response:", text);
 
+      if (!response.ok) {
+        throw new Error("Failed to send friend request");
+      }
+
+      const data = JSON.parse(text); // Parse JSON only if it's valid
       alert("Friend request sent!");
     } catch (err) {
+      console.error("Error:", err);
       alert(err.message);
     }
   };
@@ -58,14 +67,20 @@ const Card = () => {
         >
           <img
             className="w-16 h-16 rounded-full object-cover mr-4"
-            src={`${baseUrl}/static/${user.picture}`}
+            src={
+              user.picture
+                ? `${baseUrl}/static/${user.picture}`
+                : "/default-profile.png"
+            }
             alt="User Profile"
           />
 
           <div className="flex-1">
             <div className="font-bold text-lg">{user.name}</div>
             <p className="text-gray-500 text-sm">{user.description}</p>
-            <p className="text-gray-400 text-xs">{user.location || "Location not available"}</p>
+            <p className="text-gray-400 text-xs">
+              {user.location || "Location not available"}
+            </p>
           </div>
 
           <div className="flex space-x-4">
@@ -79,7 +94,8 @@ const Card = () => {
 
             {/* View Profile Button */}
             <button
-              onClick={() => navigate(`/profile/${user.id}`)} // Navigate to the user profile page
+              onClick={() => navigate(`/profile/${user.id}`)}
+              // Navigate to the user profile page
               className="text-green-500 hover:text-green-700 transition-colors duration-300"
             >
               <FaUser size={20} />

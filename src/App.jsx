@@ -18,6 +18,7 @@ import CreatePost from "./pages/home/CreatePost";
 import SideBar from "./pages/home/sidebar";
 import RightSidebar from "./pages/home/RightSidebar";
 import EditProfile from "./pages/home/EditProfile";
+import Notify from "./pages/home/notify";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -71,6 +72,7 @@ const App = () => {
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/add-users" element={<Card />} />
           <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/notifications" element={<Notify />} />
         </Routes>
       </div>
     </Router>
