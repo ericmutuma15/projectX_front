@@ -39,13 +39,13 @@ const Profile = () => {
     const endpoint = userId
       ? `${baseUrl}/api/user_posts/${userId}` // Fetch specific user's posts
       : `${baseUrl}/api/user_posts`; // Fetch logged-in user's posts
-  
+
     try {
       const response = await fetch(endpoint, {
         method: "GET",
         credentials: "include", // Include cookies for authentication
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         setPosts(data.posts || []);
@@ -56,7 +56,6 @@ const Profile = () => {
       console.error("Error fetching user posts:", error);
     }
   };
-  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,7 +86,9 @@ const Profile = () => {
           />
           <div>
             <h1 className="text-2xl font-bold">{user.name}</h1>
-            <p className="text-gray-400">{user.location || "Location not set"}</p>
+            <p className="text-gray-400">
+              {user.location || "Location not set"}
+            </p>
             <p className="mt-2">{user.description}</p>
 
             {/* Show Edit Profile button only if it's the logged-in user's profile */}
@@ -108,8 +109,10 @@ const Profile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {posts.length > 0 ? (
               posts.map((post) => (
-                <div key={post.id} className="bg-gray-900 p-4 rounded-lg shadow-lg">
-                  <h3 className="text-lg font-semibold">{post.content}</h3>
+                <div
+                  key={post.id}
+                  className="bg-gray-900 p-4 rounded-lg shadow-lg"
+                >
                   {post.media_url ? (
                     post.media_url.match(/\.(jpeg|jpg|gif|png)$/) ? (
                       <img
@@ -140,10 +143,12 @@ const Profile = () => {
                       No Media
                     </div>
                   )}
+                  <h3 className="text-lg font-semibold">{post.content}</h3>
                   <p className="text-gray-400 mt-2">
                     Likes: {post.like_count} | Posted on:{" "}
                     {new Date(post.timestamp).toLocaleString()}
                   </p>
+                  
                 </div>
               ))
             ) : (

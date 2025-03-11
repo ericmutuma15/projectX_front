@@ -47,9 +47,10 @@ const CreatePost = ({ onPostCreated }) => {
     try {
       const response = await fetch(`${baseUrl}/api/posts`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
+
+       // headers: { "Content-Type": "application/json" },
+        credentials: "include",
+
         body: formData,
       });
 
@@ -78,7 +79,9 @@ const CreatePost = ({ onPostCreated }) => {
   return (
     <div className="min-h-screen bg-gray-900 flex justify-center items-start py-8 overflow-y-auto">
       <div className="w-full max-w-md bg-gray-800 p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl text-white font-semibold mb-4 text-center">Create a Post</h2>
+        <h2 className="text-2xl text-white font-semibold mb-4 text-center">
+          Create a Post
+        </h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <form onSubmit={handlePostSubmit} className="flex flex-col space-y-4">
           <div className="relative">

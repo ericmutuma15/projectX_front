@@ -19,6 +19,7 @@ import SideBar from "./pages/home/sidebar";
 import RightSidebar from "./pages/home/RightSidebar";
 import EditProfile from "./pages/home/EditProfile";
 import Notify from "./pages/home/notify";
+import Friends from "./pages/home/FriendsList";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -73,6 +74,7 @@ const App = () => {
           <Route path="/add-users" element={<Card />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/notifications" element={<Notify />} />
+          <Route path="/friends" element={<Friends />} />
         </Routes>
       </div>
     </Router>

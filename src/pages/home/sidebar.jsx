@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaHome,
   FaBell,
@@ -11,6 +11,26 @@ import {
 import { Link } from "react-router-dom";
 
 const Sidebar = () => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
+  const [notifCount, setNotifCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotifCount = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/api/notifications`, {
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error("Failed to fetch notifications");
+        const data = await response.json();
+        // Set the count of notifications (assuming all returned notifications are unread)
+        setNotifCount(data.length);
+      } catch (error) {
+        console.error("Error fetching notifications count:", error);
+      }
+    };
+    fetchNotifCount();
+  }, [baseUrl]);
+
   return (
     <div className="relative">
       {/* Sidebar for larger screens */}
@@ -25,9 +45,14 @@ const Sidebar = () => {
               </div>
             </Link>
             <Link to="/notifications">
-              <div className="flex items-center space-x-4 p-3 rounded-md hover:bg-gray-800 cursor-pointer">
+              <div className="relative flex items-center space-x-4 p-3 rounded-md hover:bg-gray-800 cursor-pointer">
                 <FaBell className="text-xl" />
                 <span className="text-lg font-medium">Notifications</span>
+                {notifCount > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                    {notifCount}
+                  </span>
+                )}
               </div>
             </Link>
             <div className="flex items-center space-x-4 p-3 rounded-md hover:bg-gray-800 cursor-pointer">
@@ -40,10 +65,12 @@ const Sidebar = () => {
                 <span className="text-lg font-medium">Add Friends</span>
               </div>
             </Link>
-            <div className="flex items-center space-x-4 p-3 rounded-md hover:bg-gray-800 cursor-pointer">
-              <FaDollarSign className="text-xl" />
-              <span className="text-lg font-medium">Subscriptions</span>
-            </div>
+            <Link to="/friends">
+              <div className="flex items-center space-x-4 p-3 rounded-md hover:bg-gray-800 cursor-pointer">
+                <FaDollarSign className="text-xl" />
+                <span className="text-lg font-medium">Subscriptions</span>
+              </div>
+            </Link>
             <Link to="/profile">
               <div className="flex items-center space-x-4 p-3 rounded-md hover:bg-gray-800 cursor-pointer">
                 <FaUser className="text-xl" />
