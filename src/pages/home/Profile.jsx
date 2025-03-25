@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import LoadingPage from "./LoadingPage"; // Import the LoadingPage component
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import LoadingPage from "./LoadingPage";
+import { FaUserFriends, FaRegCommentDots } from "react-icons/fa";
 
 const Profile = () => {
   const { userId } = useParams(); // Get userId from URL if available
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expandedPostId, setExpandedPostId] = useState(null); // Track which post video is expanded
+  const [expandedPostId, setExpandedPostId] = useState(null);
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
+  const navigate = useNavigate();
 
   // Fetch user details
   const fetchUserDetails = async () => {
@@ -20,7 +21,7 @@ const Profile = () => {
     try {
       const response = await fetch(endpoint, {
         method: "GET",
-        credentials: "include", // Include cookies in the request
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -34,16 +35,16 @@ const Profile = () => {
     }
   };
 
-  // Fetch user posts (Show their posts when viewing their profile)
+  // Fetch user posts
   const fetchUserPosts = async () => {
     const endpoint = userId
-      ? `${baseUrl}/api/user_posts/${userId}` // Fetch specific user's posts
-      : `${baseUrl}/api/user_posts`; // Fetch logged-in user's posts
+      ? `${baseUrl}/api/user_posts/${userId}`
+      : `${baseUrl}/api/user_posts`;
 
     try {
       const response = await fetch(endpoint, {
         method: "GET",
-        credentials: "include", // Include cookies for authentication
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -64,14 +65,13 @@ const Profile = () => {
       setLoading(false);
     };
     fetchData();
-  }, [userId]); // Refetch when userId changes
+  }, [userId]);
 
   const handleVideoClick = (postId) => {
     setExpandedPostId(expandedPostId === postId ? null : postId);
   };
 
   if (loading) return <LoadingPage />;
-
   if (!user) return <div className="text-white">User not found.</div>;
 
   return (
@@ -90,9 +90,26 @@ const Profile = () => {
               {user.location || "Location not set"}
             </p>
             <p className="mt-2">{user.description}</p>
-
-            {/* Show Edit Profile button only if it's the logged-in user's profile */}
-            {!userId && (
+            {/*
+              If a userId exists, we're viewing someone else's profile.
+              If user.is_friend is true, show a friend icon, and always show a message icon.
+              Otherwise (no userId) it's the current user's profile.
+            */}
+            {userId ? (
+              <div className="flex space-x-4 mt-4">
+                {user.is_friend && (
+                  <FaUserFriends
+                    title="Friend"
+                    className="text-green-500 text-2xl"
+                  />
+                )}
+                <FaRegCommentDots
+                  title="Message"
+                  className="text-blue-500 text-2xl cursor-pointer"
+                  onClick={() => navigate(`/chat/${user.id}`)}
+                />
+              </div>
+            ) : (
               <Link
                 to="/edit-profile"
                 className="inline-block mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300"
@@ -148,7 +165,6 @@ const Profile = () => {
                     Likes: {post.like_count} | Posted on:{" "}
                     {new Date(post.timestamp).toLocaleString()}
                   </p>
-                  
                 </div>
               ))
             ) : (

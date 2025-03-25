@@ -135,6 +135,7 @@ const Notify = () => {
                     ? notif.message
                     : `Friend request from ${notif.originator_name || "Unknown User"}`}
                 </p>
+                
               </div>
 
               {/* Accept Friend Request Button - only for pending friend requests */}
