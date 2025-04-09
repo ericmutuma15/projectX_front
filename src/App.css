@@ -115,11 +115,11 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
 .no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
+
 
 /* Ensure sidebars don’t overlap the content */
 @media (min-width: 1024px) {

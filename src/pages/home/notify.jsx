@@ -6,6 +6,7 @@ const Notify = () => {
   const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState(null);
   const [loadingRequestId, setLoadingRequestId] = useState(null); // Track loading state for accept button
+  const [toast, setToast] = useState(""); // For modern toast messages
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
 
@@ -15,12 +16,21 @@ const Notify = () => {
       const response = await fetch(`${baseUrl}/api/notifications`, {
         credentials: "include",
       });
+      if (response.status === 401) {
+        navigate("/loginprompt", {
+          state: { 
+            message: "You must be logged in to view your notifications.", 
+            redirectTo: "/notify" 
+          },
+        });
+        return;
+      }
       if (!response.ok) throw new Error("Failed to fetch notifications");
 
       let data = await response.json();
       console.log("Notifications received:", data);
 
-      // Filter out invalid friend request notifications (if needed)
+      // Filter out any invalid friend request notifications if needed
       data = data.filter(
         (notif) => notif.type !== "friend_request" || notif.friend_request_id !== null
       );
@@ -29,9 +39,9 @@ const Notify = () => {
     } catch (err) {
       setError(err.message);
     }
-  }, [baseUrl]);
+  }, [baseUrl, navigate]);
 
-  // Accept Friend Request
+  // Accept Friend Request with modern toast and friend list refresh
   const acceptFriendRequest = async (requestId) => {
     setLoadingRequestId(requestId);
     try {
@@ -41,21 +51,37 @@ const Notify = () => {
         credentials: "include",
         body: JSON.stringify({ requestId }),
       });
+      if (response.status === 401) {
+        navigate("/loginprompt", {
+          state: { 
+            message: "You must be logged in to accept friend requests.", 
+            redirectTo: "/notify" 
+          },
+        });
+        return;
+      }
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to accept friend request");
       }
-      // Update notifications by marking the accepted friend request as read
+      // Update notifications locally: mark friend request as read
       setNotifications((prev) =>
         prev.map((notif) =>
           notif.friend_request_id === requestId ? { ...notif, read: true } : notif
         )
       );
-      alert("Friend request accepted!");
+      
+      // Display modern toast notification
+      setToast("Friend request accepted!");
+      
+      // Dispatch a custom event to trigger friend list refresh in other components
+      window.dispatchEvent(new Event("friendListUpdated"));
     } catch (err) {
-      alert(err.message);
+      setToast(err.message || "An error occurred.");
     } finally {
       setLoadingRequestId(null);
+      // Clear toast after 3 seconds
+      setTimeout(() => setToast(""), 3000);
     }
   };
 
@@ -66,6 +92,15 @@ const Notify = () => {
         method: "POST",
         credentials: "include",
       });
+      if (response.status === 401) {
+        navigate("/loginprompt", {
+          state: { 
+            message: "You must be logged in to mark notifications as read.", 
+            redirectTo: "/notify" 
+          },
+        });
+        return;
+      }
       if (!response.ok) throw new Error("Failed to mark notifications as read");
 
       // Update all notifications to read
@@ -77,7 +112,6 @@ const Notify = () => {
     }
   };
 
-  // Fetch Notifications on Component Mount
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
@@ -119,7 +153,6 @@ const Notify = () => {
               }`}
             >
               <div className="flex items-center space-x-3">
-                {/* Clickable Profile Picture */}
                 <img
                   src={
                     notif.originator_profile_pic.startsWith("http")
@@ -133,12 +166,12 @@ const Notify = () => {
                 <p className="text-white">
                   {notif.type === "friend_accept"
                     ? notif.message
-                    : `Friend request from ${notif.originator_name || "Unknown User"}`}
+                    : `Friend request from ${
+                        notif.originator_name || "Unknown User"
+                      }`}
                 </p>
-                
               </div>
 
-              {/* Accept Friend Request Button - only for pending friend requests */}
               {notif.type === "friend_request" && notif.friend_request_id && (
                 <button
                   onClick={() => acceptFriendRequest(notif.friend_request_id)}
@@ -163,6 +196,13 @@ const Notify = () => {
           ))
         )}
       </div>
+
+      {/* Modern Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 };

@@ -136,7 +136,7 @@ const Chat = () => {
   return (
     <div className="p-4 bg-gray-900 text-white h-screen flex flex-col">
       {/* Chat header with chat partner's details */}
-      <div className="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+      <div className="flex items-center space-x-3 p-3  rounded-lg sticky top-0 z-10 bg-gray-900">
         <img
           src={chatPartner?.picture || "/default-profile.png"}
           alt="Chat Partner"
@@ -146,7 +146,7 @@ const Chat = () => {
       </div>
 
       {/* Chat messages */}
-      <div className="mt-4 flex flex-col space-y-2 overflow-y-auto h-96 p-4 bg-gray-800 rounded">
+      <div className="mt-4 flex-1 overflow-y-auto p-4 bg-gray-800 rounded mb-4">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -201,7 +201,7 @@ const Chat = () => {
       </div>
 
       {/* Message input area */}
-      <div className="mt-4 flex items-center">
+      <div className="mt-4 flex items-center sticky bottom-0 bg-gray-900 p-3 z-10">
         <input
           className="p-2 bg-gray-700 text-white flex-grow rounded-l"
           type="text"

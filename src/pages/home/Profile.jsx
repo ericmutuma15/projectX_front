@@ -5,6 +5,7 @@ import { FaUserFriends, FaRegCommentDots } from "react-icons/fa";
 
 const Profile = () => {
   const { userId } = useParams(); // Get userId from URL if available
+  const isOwnProfile = !userId;   // No userId means current user's own profile.
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,12 +25,20 @@ const Profile = () => {
         credentials: "include",
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
-      } else {
-        console.error("Failed to fetch user details");
+      if (response.status === 401) {
+        navigate("/loginprompt", {
+          state: { message: "Please log in to view this profile.", redirectTo: `/profile/${userId || ""}` },
+        });
+        return;
       }
+
+      if (!response.ok) {
+        console.error("Failed to fetch user details");
+        return;
+      }
+
+      const data = await response.json();
+      setUser(data);
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
@@ -46,6 +55,13 @@ const Profile = () => {
         method: "GET",
         credentials: "include",
       });
+
+      if (response.status === 401) {
+        navigate("/loginprompt", {
+          state: { message: "Please log in to view posts.", redirectTo: `/profile/${userId || ""}` },
+        });
+        return;
+      }
 
       if (response.ok) {
         const data = await response.json();
@@ -76,32 +92,43 @@ const Profile = () => {
 
   return (
     <div className="bg-gray-900 min-h-screen p-6 text-white overflow-hidden">
-      <div className="profile-container overflow-y-auto max-h-screen no-scrollbar">
+      <div className="profile-container overflow-y-auto max-h-screen no-scrollbar space-y-8">
         {/* User Details */}
-        <div className="bg-gray-900 p-6 rounded-lg shadow-lg flex items-center space-x-4">
-          <img
-            src={user.picture || "/default-profile.png"}
-            alt="Profile"
-            className="w-24 h-24 rounded-full object-cover border-2 border-blue-500"
-          />
-          <div>
-            <h1 className="text-2xl font-bold">{user.name}</h1>
-            <p className="text-gray-400">
-              {user.location || "Location not set"}
-            </p>
-            <p className="mt-2">{user.description}</p>
-            {/*
-              If a userId exists, we're viewing someone else's profile.
-              If user.is_friend is true, show a friend icon, and always show a message icon.
-              Otherwise (no userId) it's the current user's profile.
-            */}
-            {userId ? (
+        {isOwnProfile ? (
+          // Own Profile: Show details with "Edit Profile" link
+          <div className="bg-gray-900 p-6 rounded-lg shadow-lg flex items-center space-x-4">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold">{user.name}</h1>
+              <p className="text-gray-400">{user.location || "Location not set"}</p>
+              <p className="mt-2">{user.description}</p>
+              <Link
+                to="/edit-profile"
+                className="inline-block mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300"
+              >
+                Edit Profile
+              </Link>
+            </div>
+            <img
+              src={user.picture || "/default-profile.png"}
+              alt="Profile"
+              className="w-24 h-24 rounded-full object-cover border-2 border-blue-500"
+            />
+          </div>
+        ) : (
+          // Viewing someone else's profile: Display details without clickable navigation
+          <div className="bg-gray-900 p-6 rounded-lg shadow-lg flex items-center space-x-4">
+            <img
+              src={user.picture || "/default-profile.png"}
+              alt="Profile"
+              className="w-24 h-24 rounded-full object-cover border-2 border-blue-500"
+            />
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold">{user.name}</h1>
+              <p className="text-gray-400">{user.location || "Location not set"}</p>
+              <p className="mt-2">{user.description}</p>
               <div className="flex space-x-4 mt-4">
                 {user.is_friend && (
-                  <FaUserFriends
-                    title="Friend"
-                    className="text-green-500 text-2xl"
-                  />
+                  <FaUserFriends title="Friend" className="text-green-500 text-2xl" />
                 )}
                 <FaRegCommentDots
                   title="Message"
@@ -109,16 +136,9 @@ const Profile = () => {
                   onClick={() => navigate(`/chat/${user.id}`)}
                 />
               </div>
-            ) : (
-              <Link
-                to="/edit-profile"
-                className="inline-block mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300"
-              >
-                Edit Profile
-              </Link>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* User Posts */}
         <div className="mt-8">
@@ -126,10 +146,7 @@ const Profile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {posts.length > 0 ? (
               posts.map((post) => (
-                <div
-                  key={post.id}
-                  className="bg-gray-900 p-4 rounded-lg shadow-lg"
-                >
+                <div key={post.id} className="bg-gray-900 p-4 rounded-lg shadow-lg">
                   {post.media_url ? (
                     post.media_url.match(/\.(jpeg|jpg|gif|png)$/) ? (
                       <img

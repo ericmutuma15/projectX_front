@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaHeart } from "react-icons/fa";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -7,9 +8,10 @@ const FeedsPage = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [previewMedia, setPreviewMedia] = useState(null); // New state for preview media
+  const [previewMedia, setPreviewMedia] = useState(null);
   const token = localStorage.getItem("access_token");
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
+  const navigate = useNavigate();
 
   // Fetch posts from the API
   useEffect(() => {
@@ -23,10 +25,10 @@ const FeedsPage = () => {
         const updatedPosts = response.data.map((post) => ({
           ...post,
           isLiked: post.liked || false,
-          likes: post.likes || 0, // Ensure likes is a valid number
-          showComments: false, // Initially hide comments
-          commentText: "", // Store the text for new comments
-          comments: post.comments || [], // Fetch existing comments
+          likes: post.likes || 0,
+          showComments: false,
+          commentText: "",
+          comments: post.comments || [],
         }));
         setPosts(updatedPosts);
         setLoading(false);
@@ -38,66 +40,62 @@ const FeedsPage = () => {
     };
 
     fetchPosts();
-  }, [token]);
+  }, [token, baseUrl]);
 
   const handleLike = async (postId) => {
-    try {
-      const post = posts.find((post) => post.id === postId);
+  try {
+    // Find the relevant post in the state
+    const post = posts.find((post) => post.id === postId);
 
-      // Immediately update UI for responsiveness
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                isLiked: !post.isLiked,
-                likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-              }
-            : post
-        )
-      );
+    // Optimistically update the UI:
+    setPosts((prevPosts) =>
+      prevPosts.map((p) =>
+        p.id === postId
+          ? {
+              ...p,
+              // Toggle the isLiked flag and update the like count accordingly
+              isLiked: !p.isLiked,
+              likes: p.isLiked ? p.likes - 1 : p.likes + 1,
+            }
+          : p
+      )
+    );
 
-      const response = await axios.post(
-        `${baseUrl}/api/posts/${postId}/like`,
-        {},
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Update likes and isLiked based on response
-      if (response.data.success) {
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post.id === postId
-              ? {
-                  ...post,
-                  likes: response.data.likes,
-                  isLiked: response.data.liked,
-                }
-              : post
-          )
-        );
+    // Call the backend endpoint to process the like/unlike request.
+    const response = await axios.post(
+      `${baseUrl}/api/posts/${postId}/like`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       }
-    } catch (error) {
-      console.error("Error liking/unliking post:", error);
-      // Reset like state if error occurs to avoid UI inconsistency
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                isLiked: !post.isLiked,
-                likes: post.isLiked ? post.likes + 1 : post.likes - 1,
-              }
-            : post
-        )
-      );
-    }
-  };
+    );
+
+    // Update the state with the fresh like count from the server response.
+    // The response is assumed to have a structure like: { message: "...", likes: <number> }
+    setPosts((prevPosts) =>
+      prevPosts.map((p) =>
+        p.id === postId ? { ...p, likes: response.data.likes } : p
+      )
+    );
+  } catch (error) {
+    console.error("Error liking/unliking post:", error);
+    // If there's an error, revert the optimistic update.
+    setPosts((prevPosts) =>
+      prevPosts.map((p) =>
+        p.id === postId
+          ? {
+              ...p,
+              isLiked: !p.isLiked,
+              likes: p.isLiked ? p.likes + 1 : p.likes - 1,
+            }
+          : p
+      )
+    );
+  }
+};
 
   const handleCommentToggle = (postId) => {
     setPosts((prevPosts) =>
@@ -132,7 +130,7 @@ const FeedsPage = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: true, // 🔹 This is crucial for sending cookies
+          withCredentials: true,
         }
       );
 
@@ -152,18 +150,16 @@ const FeedsPage = () => {
     }
   };
 
-  // Handle opening the media preview
   const handleMediaClick = (mediaUrl) => {
-    setPreviewMedia(mediaUrl); // Set media URL for preview
+    setPreviewMedia(mediaUrl);
   };
 
-  // Handle closing the preview
   const closePreview = () => {
-    setPreviewMedia(null); // Clear preview state to close modal
+    setPreviewMedia(null);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6 flex justify-center">
+    <div className="min-h-screen bg-gray-900 text-white p-6 flex justify-center overflow-y-auto no-scrollbar">
       {/* Media Preview Modal */}
       {previewMedia && (
         <div className="fixed inset-0 flex justify-center items-center bg-opacity-60 z-50">
@@ -191,16 +187,17 @@ const FeedsPage = () => {
       )}
 
       {/* Posts Section */}
-
-      <div className="w-full max-w-3xl flex flex-col space-y-8 mx-auto bg-gray-900 lg:mr-12">
-
+      <div className="w-full max-w-3xl flex flex-col space-y-8 mx-auto bg-gray-900 lg:mr-12 max-h-screen overflow-y-auto no-scrollbar min-h-0">
         {posts.map((post) => (
           <div
             key={post.id}
-            className=" p-6 rounded-xl shadow-lg w-full border border-gray-800 mx-auto"
+            className="p-6 rounded-xl shadow-lg w-full border border-gray-800 mx-auto"
           >
-            {/* User Info Section */}
-            <div className="flex items-center space-x-4 mb-5">
+            {/* User Info Section (Clickable) */}
+            <div
+              onClick={() => navigate(`/profile/${post.user_id}`)}
+              className="flex items-center space-x-4 mb-5 cursor-pointer hover:underline"
+            >
               {post.user_photo && (
                 <img
                   src={`${baseUrl}/static/${post.user_photo}`}
@@ -218,7 +215,7 @@ const FeedsPage = () => {
               </div>
             </div>
 
-            {/* Media Section (Perfectly Centered) */}
+            {/* Media Section (Centered) */}
             {post.media_url && (
               <div
                 className="mb-4 flex justify-center items-center w-full"
@@ -296,7 +293,6 @@ const FeedsPage = () => {
                       key={comment.id}
                       className="bg-gray-800 p-4 rounded-lg flex items-start space-x-4 border border-gray-700"
                     >
-                      {/* Comment User's Profile Picture */}
                       {comment.user_photo && (
                         <img
                           src={`${baseUrl}/static/${comment.user_photo}`}
@@ -304,8 +300,6 @@ const FeedsPage = () => {
                           className="w-8 h-8 rounded-full object-cover border border-gray-600"
                         />
                       )}
-
-                      {/* Comment Content */}
                       <div className="flex-1">
                         <p className="text-sm font-bold text-white">
                           {comment.user_name}

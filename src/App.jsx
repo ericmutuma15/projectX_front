@@ -8,8 +8,10 @@ import {
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import "./App.css";
+import { Toaster } from "react-hot-toast";
 
 // Pages
+import StartPage from "./pages/home/StartPage";
 import LoadingPage from "./pages/home/LoadingPage";
 import Profile from "./pages/home/Profile";
 import Card from "./pages/home/card";
@@ -22,6 +24,8 @@ import Notify from "./pages/home/notify";
 import Friends from "./pages/home/FriendsList";
 import Chat from "./pages/home/Chat";
 import Messages from "./pages/home/Messages";
+import LoginPrompt from './pages/home/LoginPrompt'
+import Subscription from "./pages/home/Subscription";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -41,7 +45,6 @@ const App = () => {
   const [loading, setLoading] = useState(true); // New state for loading
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-
   useEffect(() => {
     // Ensure that cookies are sent with the request by adding credentials: 'include'
     fetch(`${baseUrl}/api/current_user`, {
@@ -50,7 +53,7 @@ const App = () => {
     })
       .then((res) => {
         if (!res.ok) {
-          throw new Error('Failed to fetch current user');
+          throw new Error("Failed to fetch current user");
         }
         return res.json();
       })
@@ -65,13 +68,16 @@ const App = () => {
 
   return (
     <Router>
+      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <div className="bg-gray-900 h-screen w-full flex flex-col">
         <Routes>
-          <Route path="/" element={<SignUp />} />
+          <Route path="/" element={<StartPage />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/home" element={<Home currentUser={currentUser} />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/:userId" element={<Profile />} /> {/* Dynamic profile view */}
+          <Route path="/profile/:userId" element={<Profile />} />{" "}
+          {/* Dynamic profile view */}
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/add-users" element={<Card />} />
           <Route path="/edit-profile" element={<EditProfile />} />
@@ -79,6 +85,8 @@ const App = () => {
           <Route path="/friends" element={<Friends />} />
           <Route path="/chat/:userId" element={<Chat />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/loginprompt" element={<LoginPrompt />}/>
+          <Route path="/subscriptions" element={<Subscription />} />
         </Routes>
       </div>
     </Router>
@@ -236,15 +244,15 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     const { email, password } = formData;
-  
+
     try {
       const response = await fetch(`${baseUrl}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include",  // 🔥 Allow cookies
+        credentials: "include", // 🔥 Allow cookies
       });
-  
+
       if (response.ok) {
         showLoginSuccessAlert();
         navigate("/home");
@@ -254,7 +262,7 @@ const Login = () => {
     } catch (error) {
       console.error("Error during login:", error);
     }
-  };  
+  };
 
   const showLoginSuccessAlert = () => {
     const alertBox = document.getElementById("login-alert");
@@ -292,7 +300,7 @@ const Login = () => {
   };
 
   const handleSignUpRedirect = () => {
-    navigate("/");
+    navigate("/signup");
   };
 
   return (
@@ -378,7 +386,7 @@ const Home = () => {
           method: "GET",
           credentials: "include", // 🔥 Include cookies in request
         });
-    
+
         if (response.ok) {
           const data = await response.json();
           setUser(data);
@@ -399,7 +407,7 @@ const Home = () => {
         method: "POST",
         credentials: "include", // Important! Ensures cookies are sent with the request
       });
-  
+
       if (response.ok) {
         // Redirect user to login page
         navigate("/login");
@@ -428,7 +436,7 @@ const Home = () => {
 
   return (
     <div className="h-screen w-full flex bg-gray-900 text-white">
-      {/* Left Sidebar - Always visible on large screens, toggleable on small screens */}
+      {/* Left Sidebar - Always visible on large screens */}
       <div
         className={`w-64 bg-gray-900 flex flex-col fixed top-0 left-0 h-full z-10 lg:block ${
           isSidebarOpen ? "block" : "hidden"
@@ -436,29 +444,25 @@ const Home = () => {
       >
         <SideBar />
       </div>
-  
+
       {/* Main Content Wrapper */}
-      <div
-        className={`flex-1 flex flex-col transition-all duration-300 ${
-          isSidebarOpen ? "ml-64" : "lg:ml-0"
-        }`}
-      >
+      <div className="flex-1 flex flex-col transition-all duration-300 ml-0 lg:ml-64">
         {/* Sticky Header */}
-        <div className="sticky top-0 bg-gray-900 w-full h-16 flex justify-between items-center p-4 z-10">
+        <div className="sticky top-0 bg-gray-900 w-full h-16 flex justify-between items-center p-2 sm:p-4 z-10">
           <div className="flex items-center space-x-4">
             {/* Sidebar Toggle Button (for small screens) */}
             <button className="lg:hidden text-white" onClick={handleToggleSidebar}>
               <FaBars size={24} />
             </button>
-  
+
             {/* Search Icon (visible on small screens) */}
             <div className="flex-1 mx-4 flex justify-center lg:hidden">
               <button className="text-white">
                 <FaSearch size={24} />
               </button>
             </div>
-  
-            {/* Profile Picture */}
+
+            {/* Profile Picture & User Name */}
             {user?.picture ? (
               <img src={user.picture} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
             ) : (
@@ -468,39 +472,35 @@ const Home = () => {
             )}
             <span className="text-white text-lg">{user?.name || "User"}</span>
           </div>
-  
+
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="px-4 py-2 text-white bg-gray-700 rounded-md shadow-md hover:bg-red-600 transition duration-300"
+            className="px-4 py-2 sm:px-2 sm:py-1 text-white bg-gray-700 rounded-md shadow-md hover:bg-red-600 transition duration-300"
           >
             <FaSignOutAlt size={20} />
           </button>
         </div>
-  
+
         {/* Main Feeds Section */}
-        <div className="flex flex-1 bg-gray-900 lg:ml-12 ">
+        <div className="flex flex-1 w-full bg-gray-900">
           {/* Feeds Page */}
-          <div
-            className={`flex-1 bg-gray-900 overflow-y-auto no-scrollbar transition-all duration-300 ${
-              isSidebarOpen ? "lg:ml-64 lg:mr-64" : "lg:ml-0 lg:mr-0"
-            }`}
-            style={{ height: "calc(100vh - 4rem)" }}
-          >
-            <div className="flex justify-center">
-              <div className="max-w-7xl w-full">
-                <FeedsPage onMediaClick={handleMediaClick} />
-              </div>
-            </div>
-          </div>
-  
+          <div className="flex-1 min-h-0 w-full bg-gray-900 overflow-y-auto no-scrollbar transition-all duration-300">
+  <div className="flex justify-center">
+    <div className="max-w-7xl w-full">
+      <FeedsPage onMediaClick={handleMediaClick} />
+    </div>
+  </div>
+</div>
+
+
           {/* Right Sidebar (Visible on large screens) */}
           <div className="lg:w-64 hidden lg:block bg-gray-900">
             <RightSidebar />
           </div>
         </div>
       </div>
-  
+
       {/* Media Preview Overlay */}
       {selectedMedia && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-20">
@@ -508,8 +508,6 @@ const Home = () => {
             <button onClick={handleClosePreview} className="absolute top-4 right-4 text-white text-2xl">
               &times;
             </button>
-  
-            {/* Media Preview */}
             {selectedMedia.mediaUrl.endsWith(".mp4") || selectedMedia.mediaUrl.endsWith(".webm") ? (
               <video controls className="w-full rounded-lg" style={{ maxHeight: "70vh" }}>
                 <source src={`${baseUrl}${selectedMedia.mediaUrl}`} type="video/mp4" />
@@ -523,8 +521,6 @@ const Home = () => {
                 style={{ maxHeight: "70vh", objectFit: "cover" }}
               />
             )}
-  
-            {/* Caption */}
             <p className="text-white mt-4">{selectedMedia.caption}</p>
           </div>
         </div>

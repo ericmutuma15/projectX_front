@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { FaUserPlus, FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import LoadingPage from "./LoadingPage";
+import { toast } from "react-hot-toast";
+
 
 const Card = () => {
   const [users, setUsers] = useState([]);
@@ -17,7 +19,16 @@ const Card = () => {
           credentials: "include",
         });
 
-        if (!response.ok) throw new Error("Failed to fetch users");
+        if (!response.ok) {
+          if (response.status === 401) {
+            // If user is not logged in, navigate to the login prompt.
+            navigate("/loginprompt", {
+              state: { message: "You must be logged in to add friends.", redirectTo: "/users" },
+            });
+            return;
+          }
+          throw new Error("Failed to fetch users");
+        }
 
         const data = await response.json();
         setUsers(data);
@@ -29,7 +40,7 @@ const Card = () => {
     };
 
     fetchUsers();
-  }, []);
+  }, [baseUrl, navigate]);
 
   const sendFriendRequest = async (userId) => {
     try {
@@ -39,21 +50,39 @@ const Card = () => {
         credentials: "include",
         body: JSON.stringify({ userId }),
       });
-
-      const text = await response.text(); // Log the raw response
-      console.log("Raw response:", text);
-
-      if (!response.ok) {
-        throw new Error("Failed to send friend request");
+  
+      if (response.status === 401) {
+        navigate("/loginprompt", {
+          state: {
+            message: "You must be logged in to add friends.",
+            redirectTo: "/users",
+          },
+        });
+        return;
       }
-
-      const data = JSON.parse(text); // Parse JSON only if it's valid
-      alert("Friend request sent!");
+  
+      const text = await response.text();
+  
+      if (!response.ok) {
+        if (text.includes("already sent")) {
+          toast("Friend request already sent", {
+            icon: "⚠️",
+            style: { background: "#fef3c7", color: "#92400e" },
+          });
+        } else {
+          throw new Error("Failed to send friend request");
+        }
+      } else {
+        toast.success("Friend request sent!");
+        // Optionally trigger friends refresh
+        window.dispatchEvent(new Event("friendListUpdated"));
+      }
     } catch (err) {
       console.error("Error:", err);
-      alert(err.message);
+      toast.error(err.message);
     }
   };
+  
 
   if (loading) return <LoadingPage />;
   if (error) return <div className="text-center text-red-500 p-4">{error}</div>;
@@ -95,7 +124,6 @@ const Card = () => {
             {/* View Profile Button */}
             <button
               onClick={() => navigate(`/profile/${user.id}`)}
-              // Navigate to the user profile page
               className="text-green-500 hover:text-green-700 transition-colors duration-300"
             >
               <FaUser size={20} />
